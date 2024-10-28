@@ -10,7 +10,7 @@ def callback(url):
 
 # Set up root
 root = tk.Tk()
-root.title("Product Page")
+root.title("Login Page")
 
 # Setting up background colour and size
 root.configure(bg="#C4DAD2")
