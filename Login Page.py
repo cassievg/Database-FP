@@ -22,7 +22,7 @@ content.pack(padx=20, pady=20)
 
 # Create container for store logo
 storeLogoFrame = tk.Frame(content, bg="#C4DAD2", borderwidth=1, relief='solid')
-storeLogoFrame.pack(side="left", pady=10, padx=100, fill='x')
+storeLogoFrame.pack(side="left", pady=10, padx=10, fill='x')
 
 # Put store logo in container
 storeLogoText = tk.Label(storeLogoFrame, text="ONLINE\nSTORE", font=("Lato", 32, "bold"), bg="#C4DAD2")
@@ -90,11 +90,11 @@ label.pack()
 
 # Create a button for login/submit
 submitButton = tk.Button(loginFormFrame, text = 'Login', bg="#5B8676", fg='white', font = ('Lato', 12, 'normal'), command = submit)
-submitButton.pack(anchor="w", pady=10)
+submitButton.pack(side="right", pady=10)
 
 # Create a hyperlink for sign up
 signup = tk.Label(loginFormFrame, text="Sign Up Instead", fg="black", cursor="hand2", font = ('Lato', 12, 'underline'))
-signup.pack(anchor="w")
+signup.pack(side="left")
 signup.bind("<Button-1>", lambda e: callback("https://www.figma.com/design/4RUsaw0PlEYKsbcCDe9EGG/Database-(Online-Store)?node-id=0-1&node-type=canvas&t=YM2GzmleMybZS2GS-0"))
 
 root.mainloop()
