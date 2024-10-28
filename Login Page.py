@@ -3,6 +3,10 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import requests
 from io import BytesIO
+import webbrowser
+
+def callback(url):
+    webbrowser.open_new(url)
 
 # Set up root
 root = tk.Tk()
@@ -38,7 +42,7 @@ loginText.pack(anchor="n")
 emailVar = tk.StringVar()
 pwVar = tk.StringVar()
 
-# Function for email and pass
+# Function for submit
 def submit():
 
     email = emailVar.get()
@@ -85,7 +89,12 @@ label = tk.Label(loginFormFrame, bg="#C4DAD2", font = ('Lato', 16, 'normal'))
 label.pack()
 
 # Create a button for login/submit
-submitButton = tk.Button(loginFormFrame, text = 'Login', bg="#5B8676", fg='white', font = ('Lato', 16, 'normal'), command = submit, width=30)
+submitButton = tk.Button(loginFormFrame, text = 'Login', bg="#5B8676", fg='white', font = ('Lato', 12, 'normal'), command = submit)
 submitButton.pack(anchor="w", pady=10)
+
+# Create a hyperlink for sign up
+signup = tk.Label(loginFormFrame, text="Sign Up Instead", fg="black", cursor="hand2", font = ('Lato', 12, 'underline'))
+signup.pack(anchor="w")
+signup.bind("<Button-1>", lambda e: callback("https://www.figma.com/design/4RUsaw0PlEYKsbcCDe9EGG/Database-(Online-Store)?node-id=0-1&node-type=canvas&t=YM2GzmleMybZS2GS-0"))
 
 root.mainloop()
