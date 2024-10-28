@@ -93,7 +93,7 @@ submitButton = tk.Button(loginFormFrame, text = 'Login', bg="#5B8676", fg='white
 submitButton.pack(side="right", pady=10)
 
 # Create a hyperlink for sign up
-signup = tk.Label(loginFormFrame, text="Sign Up Instead", fg="black", cursor="hand2", font = ('Lato', 12, 'underline'))
+signup = tk.Label(loginFormFrame, text="Sign Up Instead", bg="#C4DAD2", fg="black", cursor="hand2", font = ('Lato', 12, 'underline'))
 signup.pack(side="left")
 signup.bind("<Button-1>", lambda e: callback("https://www.figma.com/design/4RUsaw0PlEYKsbcCDe9EGG/Database-(Online-Store)?node-id=0-1&node-type=canvas&t=YM2GzmleMybZS2GS-0"))
 
