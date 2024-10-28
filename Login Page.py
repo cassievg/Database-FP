@@ -60,7 +60,7 @@ def sel():
    label.config(text = selection)
 
 # Create a label for email
-emailLabel = tk.Label(loginFormFrame, text = 'Email\n', bg="#C4DAD2", font=('Lato', 18, 'bold'))
+emailLabel = tk.Label(loginFormFrame, text = 'Email', bg="#C4DAD2", font=('Lato', 18, 'bold'))
 emailLabel.pack(anchor="w", pady=10)
  
 # Create a entry for email
@@ -68,7 +68,7 @@ emailEntry = tk.Entry(loginFormFrame, textvariable = emailVar, font=('Lato', 16,
 emailEntry.pack(anchor="w", pady=10)
  
 # Create a label for password
-pwLabel = tk.Label(loginFormFrame, text = 'Password\n', bg="#C4DAD2", font = ('Lato', 18, 'bold'))
+pwLabel = tk.Label(loginFormFrame, text = 'Password', bg="#C4DAD2", font = ('Lato', 18, 'bold'))
 pwLabel.pack(anchor="w", pady=10)
  
 # Create a entry for password
@@ -76,7 +76,7 @@ pwEntry = tk.Entry(loginFormFrame, textvariable = pwVar, font = ('Lato', 16, 'no
 pwEntry.pack(anchor="w", pady=10)
  
 # Create a label for role
-roleLabel = tk.Label(loginFormFrame, text = 'Role\n', bg="#C4DAD2", font = ('Lato', 18, 'bold'))
+roleLabel = tk.Label(loginFormFrame, text = 'Role', bg="#C4DAD2", font = ('Lato', 18, 'bold'))
 roleLabel.pack(anchor="w", pady=10)
 
 # Create radio buttons
