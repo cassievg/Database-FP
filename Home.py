@@ -7,22 +7,22 @@ class Homepage():
         self.root.configure(bg="#C4DAD2")
         self.root.geometry('1280x720')
 
-        image1 = tk.PhotoImage(file="Logo.png")
+        image1 = tk.PhotoImage(file="icons/Logo.png")
         self.image_label = tk.Label(self.root, image=image1, bg='#C4DAD2')
         self.image_label.place(x=43, y=22)
 
         self.searchbarField = tk.Entry(self.root, background='white', foreground='black', font=('Lato', 14), width=15)
         self.searchbarField.place(x=328, y=34, width=600, height=40)
 
-        image2 = tk.PhotoImage(file='searchIcon.png')
+        image2 = tk.PhotoImage(file='icons/searchIcon.png')
         self.searchButton = tk.Button(self.root, image=image2, command=self.search, bg="#C4DAD2", fg="white")
         self.searchButton.place(x=945, y=29, width=47, height=47)
 
-        image3 = tk.PhotoImage(file='cartIcon.png')
+        image3 = tk.PhotoImage(file='icons/cartIcon.png')
         self.cartButton = tk.Button(self.root, image=image3, command=self.goToCart, bg="#C4DAD2", fg="white")
         self.cartButton.place(x=1112, y=29, width=48, height=48)
 
-        image4 = tk.PhotoImage(file='settingIcon.png')
+        image4 = tk.PhotoImage(file='icons/settingIcon.png')
         self.settingButton = tk.Button(self.root, image=image4, command=self.goToSetting, bg="#C4DAD2", fg="white")
         self.settingButton.place(x=1193, y=29, width=48, height=48)
 
@@ -112,7 +112,7 @@ class Homepage():
             
             name = d['name']
             price = d['price']
-            image_path = d['image']  
+            image_path = 'icons/'+ d['image']  
 
             product_canvas = tk.Canvas(scrollableFrame2, width=230, height=230, bg="white", highlightthickness=0)
             product_canvas.grid(row=row, column=col, padx=25, pady=20)

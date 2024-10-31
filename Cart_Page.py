@@ -10,7 +10,7 @@ class CartPage():
         yourCartText = tk.Label(self.root, text="YOUR CART", font='Lato 30 bold', bg='#C4DAD2')
         yourCartText.place(x=32,y=33)
 
-        image4 = tk.PhotoImage(file='settingIcon.png')
+        image4 = tk.PhotoImage(file='icons/settingIcon.png')
         self.settingButton = tk.Button(self.root, image=image4, command=self.goToSetting, bg="#C4DAD2", fg="white")
         self.settingButton.place(x=1193, y=29, width=48, height=48)
 
@@ -55,7 +55,7 @@ class CartPage():
         for d in self.products:
             name = d['name']
             price = d['price']
-            image_path = d['image']  
+            image_path = 'icons/'+ d['image']  
             payment = d['payment']
 
             product_canvas = tk.Canvas(scrollableFrame, width=1130, height=150, bg="white", highlightthickness=0)
