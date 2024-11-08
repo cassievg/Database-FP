@@ -2,8 +2,7 @@ import tkinter as tk
 from tkinter import font
 from tkinter import simpledialog, messagebox
 
-class userSetting:
-
+class userSetting():
     def __init__(self):
 
         self.root = tk.Tk()
