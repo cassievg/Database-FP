@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import font
 from tkinter import simpledialog, messagebox
 
-class userSetting():
+class UserSetting():
     def __init__(self):
 
         self.root = tk.Tk()
@@ -218,4 +218,4 @@ class userSetting():
                 else:
                     messagebox.showerror("Error", "Password is Incorrect")
 
-userSetting()
+UserSetting()
