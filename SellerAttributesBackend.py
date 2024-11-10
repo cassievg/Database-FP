@@ -1,6 +1,7 @@
 import tkinter as tk
-from tkinter import messagebox, filedialog 
+from tkinter import messagebox, filedialog
 from PIL import Image, ImageTk
+import os
 import mysql.connector
 
 def get_connection():
@@ -72,6 +73,7 @@ class SellerAttributes():
         self.root1.title("Seller Home Page")
         self.root1.configure(bg="#C4DAD2")
         self.root1.geometry('1280x720')
+        self.root1.protocol("WM_END_WINDOW", self.end)
 
         yourShopText1 = tk.Label(self.root1, text="YOUR SHOP", font='Lato 24 bold', bg='#C4DAD2')
         yourShopText1.place(x=32, y=33)
@@ -106,57 +108,41 @@ class SellerAttributes():
         self.productframe1.place(x=52, y=310, width=1190, height=300)
 
         self.canvas1 = tk.Canvas(self.productframe1, bg="#C4DAD2", highlightthickness=0)
-        scrollableFrame1 = tk.Frame(self.canvas1, bg="#C4DAD2")
+        self.scrollableFrame1 = tk.Frame(self.canvas1, bg="#C4DAD2")
 
-        scrollbar1 = tk.Scrollbar(self.productframe1, orient="vertical", command=self.canvas1.yview)
-        self.canvas1.configure(yscrollcommand=scrollbar1.set)
+        self.scrollbar1 = tk.Scrollbar(self.productframe1, orient="vertical", command=self.canvas1.yview)
+        self.canvas1.configure(yscrollcommand=self.scrollbar1.set)
 
         self.canvas1.pack(side="left", fill="both", expand=True)
-        scrollbar1.pack(side="right", fill="y")
+        self.scrollbar1.pack(side="right", fill="y")
 
-        self.canvas1.create_window((0, 0), window=scrollableFrame1, anchor="nw")
-        scrollableFrame1.bind("<Configure>", self.on_frame_configure)
+        self.canvas1.create_window((0, 0), window=self.scrollableFrame1, anchor="nw")
+        self.scrollableFrame1.bind("<Configure>", self.on_frame_configure)
         self.canvas1.bind_all("<MouseWheel>", self._on_mouse_wheel)
 
         cursor.execute("SELECT * FROM `onlinestore`.`product`")
         products = cursor.fetchall()
         
         self.product_images = []
-        names = []
-        prices = []
-        image_paths = []
-        descriptions = []
+        self.names = []
+        self.prices = []
+        self.image_paths = []
+        self.descriptions = []
         for product in products:
-            names.append(product[1])
-            prices.append(product[2])
+            self.names.append(product[1])
+            self.prices.append(product[2])
             image_path = product[3]
-            image_paths.append(image_path)
-            descriptions.append(product[4])
+            self.image_paths.append(image_path)
+            self.descriptions.append(product[4])
 
-        for i in range(len(names)):
-            product_canvas = tk.Canvas(scrollableFrame1, width=1130, height=150, bg="white", highlightthickness=0)
-            product_canvas.grid(padx=25, pady=20)
-
-            images = Image.open(image_paths[i])
-            images = images.resize((130,100))
-            product_image = ImageTk.PhotoImage(images)
-            self.product_images.append(product_image)
-            product_canvas.create_image(130, 70, image=product_image)
-
-            product_canvas.create_text(230, 35, text=names[i], font='Lato 16 bold', fill='black', anchor='w')
-            product_canvas.create_text(230, 70, text=prices[i], font='Lato 14', fill='grey', anchor='w')
-
-            delete_button = tk.Button(scrollableFrame1, text="X", command=lambda name = names[i]: self.delete_product(name), width=3, bg='lightcoral', font='Lato 14 bold')
-            product_canvas.create_window(1100, 25, window=delete_button)
-
-            edit_button = tk.Button(scrollableFrame1, text="Edit", command=lambda namess = names[i]: self.edit_product(namess), width=3, bg='lightgray', font='Lato 14 bold')
-            product_canvas.create_window(1070, 110, window=edit_button, width=100)
+        self.display_product(self.names)
 
         self.root2 = tk.Toplevel()
         self.root2.withdraw()
         self.root2.title("Add Product Page")
         self.root2.configure(bg="#C4DAD2")
         self.root2.geometry('1280x720')
+        self.root2.protocol("WM_END_WINDOW", self.end)
 
         yourShopText2 = tk.Label(self.root2, text="ADD PRODUCT", font='Lato 24 bold', bg='#C4DAD2')
         yourShopText2.place(x=32, y=33)
@@ -222,6 +208,7 @@ class SellerAttributes():
         self.root3.title("Edit Product Page")
         self.root3.configure(bg="#C4DAD2")
         self.root3.geometry('1280x720')
+        self.root3.protocol("WM_END_WINDOW", self.end)
 
         yourShopText3 = tk.Label(self.root3, text="EDIT PRODUCT", font='Lato 24 bold', bg='#C4DAD2')
         yourShopText3.place(x=32, y=33)
@@ -344,7 +331,9 @@ class SellerAttributes():
         self.entries3[1].insert(0, products[2])
         self.entries3[2].insert("1.0", products[4])
         self.entries3[3].insert(0, products[5])
-        self.entries3[4].insert(0, products[6])
+        categoryID = products[6]
+        categoryName = get_categoryName(categoryID)
+        self.entries3[4].insert(0, categoryName)
 
         self.current_editing_product = products[1]
 
@@ -362,6 +351,35 @@ class SellerAttributes():
         cursor.execute("DELETE FROM `onlinestore`.`product` WHERE `productName` = %s", (name,))
         self.root1.destroy()
         SellerAttributes()
+
+    def display_product(self, names):
+
+        for widget in self.scrollableFrame1.winfo_children():
+            widget.destroy()
+
+        for name1 in names:
+            count = 0
+            for name2 in self.names:
+                if name1.lower() == name2.lower():
+                    product_canvas = tk.Canvas(self.scrollableFrame1, width=1130, height=150, bg="white", highlightthickness=0)
+                    product_canvas.grid(padx=25, pady=20)
+
+                    images = Image.open(self.image_paths[count])
+                    images = images.resize((130,100))
+                    product_image = ImageTk.PhotoImage(images)
+                    self.product_images.append(product_image)
+                    product_canvas.create_image(130, 70, image=product_image)
+
+                    product_canvas.create_text(230, 35, text=self.names[count], font='Lato 16 bold', fill='black', anchor='w')
+                    product_canvas.create_text(230, 70, text=self.prices[count], font='Lato 14', fill='grey', anchor='w')
+
+                    delete_button = tk.Button(self.scrollableFrame1, text="X", command=lambda name = self.names[count]: self.delete_product(name), width=3, bg='lightcoral', font='Lato 14 bold')
+                    product_canvas.create_window(1100, 25, window=delete_button)
+
+                    edit_button = tk.Button(self.scrollableFrame1, text="Edit", command=lambda namess = self.names[count]: self.edit_product(namess), width=3, bg='lightgray', font='Lato 14 bold')
+                    product_canvas.create_window(1070, 110, window=edit_button, width=100)
+                count += 1
+
 
     def goToSetting(self):
         print("Going to settings...")
@@ -399,7 +417,8 @@ class SellerAttributes():
             messagebox.showinfo("Category Change", f"Category has been updated!")
 
     def search(self):
-        print('Searching...')
+        product_searched = self.searchbarField1.get()
+        self.display_product([product_searched])
 
     def on_frame_configure(self, event):
             self.canvas1.configure(scrollregion=self.canvas1.bbox("all"))
@@ -425,6 +444,10 @@ class SellerAttributes():
         self.root1.destroy()
         SellerAttributes()
 
+    def end(self):
+        self.root1.destroy()
+        self.root2.destroy()
+        self.root3.destroy()
 
 def display_table(tableName):
     cursor.execute(f"SELECT * FROM `onlinestore`.`{tableName}`")
@@ -448,6 +471,13 @@ def get_categoryID(categoryName):
 
     return categoryID
 
+def get_categoryName(categoryID):
+    categoryName = ""
+    cursor.execute("SELECT (`categoryName`) FROM `onlinestore`.`category` WHERE categoryID = %s", (categoryID,))
+    products = cursor.fetchone()
+    categoryName = products[0]
+    return categoryName
+
 def add_product(productName, productPrice, productImage, productDescription, remainingStock, categoryName, sellerID):
     category_ID = get_categoryID(categoryName)
 
@@ -465,14 +495,13 @@ cursor.execute("""
 """)
 
 # Default Products
-add_product("Table", 50.000, "icons\placeholder.png", "None", 1, "Furniture", 1)
-add_product("Chair", 52.000, "icons\placeholder.png", "None", 1, "Furniture", 1)
-add_product("T-Shirt", 43.000, "icons\placeholder.png", "None", 1, "Clothing", 1)
-add_product("Paper", 14.000, "icons\placeholder.png", "None", 1, "Stationery", 1)
-add_product("Bracelet", 50.000, "icons\placeholder.png", "None", 1, "Accessories", 1)
-add_product("Necklace", 50.000, "icons\placeholder.png", "None", 1, "Accessories", 1)
-add_product("Wallet", 50.000, "icons\placeholder.png", "None", 1, "Accessories", 1)
-add_product("Mug", 50.000, "icons\placeholder.png", "None", 1, "Kitchenware", 1)
+add_product("Table", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Furniture", 1)
+add_product("Chair", 52.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Furniture", 1)
+add_product("T-Shirt", 43.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Clothing", 1)
+add_product("Paper", 14.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Stationery", 1)
+add_product("Bracelet", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Accessories", 1)
+add_product("Necklace", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Accessories", 1)
+add_product("Wallet", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Accessories", 1)
+add_product("Mug", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Kitchenware", 1)
 
 SellerAttributes()
-display_table("product")
