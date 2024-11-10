@@ -495,13 +495,13 @@ cursor.execute("""
 """)
 
 # Default Products
-add_product("Table", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Furniture", 1)
-add_product("Chair", 52.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Furniture", 1)
-add_product("T-Shirt", 43.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Clothing", 1)
-add_product("Paper", 14.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Stationery", 1)
-add_product("Bracelet", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Accessories", 1)
-add_product("Necklace", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Accessories", 1)
-add_product("Wallet", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Accessories", 1)
-add_product("Mug", 50.000, r"C:\Users\Rafael\OneDrive\Desktop\Uni\Programming Files\Mini Projects\Database Technology\icons\placeholder.png", "None", 1, "Kitchenware", 1)
+add_product("Table", 50.000, "icons\placeholder.png", "None", 1, "Furniture", 1)
+add_product("Chair", 52.000, "icons\placeholder.png", "None", 1, "Furniture", 1)
+add_product("T-Shirt", 43.000, "icons\placeholder.png", "None", 1, "Clothing", 1)
+add_product("Paper", 14.000, "icons\placeholder.png", "None", 1, "Stationery", 1)
+add_product("Bracelet", 50.000, "icons\placeholder.png", "None", 1, "Accessories", 1)
+add_product("Necklace", 50.000, "icons\placeholder.png", "None", 1, "Accessories", 1)
+add_product("Wallet", 50.000, "icons\placeholder.png", "None", 1, "Accessories", 1)
+add_product("Mug", 50.000, "icons\placeholder.png", "None", 1, "Kitchenware", 1)
 
 SellerAttributes()
