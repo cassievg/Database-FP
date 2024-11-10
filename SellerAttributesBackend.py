@@ -213,7 +213,7 @@ class SellerAttributes():
         yourShopText3 = tk.Label(self.root3, text="EDIT PRODUCT", font='Lato 24 bold', bg='#C4DAD2')
         yourShopText3.place(x=32, y=33)
 
-        self.image4 = tk.PhotoImage(file='icons/settingIcon.png')
+        self.image4 = tk.PhotoImage(file="icons\settingIcon.png")
         self.settingButton3 = tk.Button(self.root3, image=self.image4, command=self.goToSetting, bg="#C4DAD2", fg="white")
         self.settingButton3.place(x=1193, y=29, width=48, height=48)
 
@@ -357,6 +357,9 @@ class SellerAttributes():
         for widget in self.scrollableFrame1.winfo_children():
             widget.destroy()
 
+        if names[0] == "":
+            names = self.names
+        
         for name1 in names:
             count = 0
             for name2 in self.names:
