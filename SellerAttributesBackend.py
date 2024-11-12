@@ -15,9 +15,13 @@ def get_connection():
 
 cursor = get_connection().cursor()
 
-# Ensuring a new clean database
-cursor.execute("DROP DATABASE IF EXISTS `onlinestore`")
-cursor.execute("CREATE DATABASE `onlinestore`")
+# Note: Jangan sembarangan drop database dong :)
+# Kalau kek gini, berarti user harus perbarui databasenya dong sekali pakai.
+# nanti aku perbaiki ini. ini aku comment kan dulu, jangan sentuh apa2 lagi :)
+# - dari Ellis
+
+# cursor.execute("DROP DATABASE IF EXISTS `onlinestore`")
+# cursor.execute("CREATE DATABASE `onlinestore`")
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS`onlinestore`.`user` (
