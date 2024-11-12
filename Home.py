@@ -1,14 +1,17 @@
 import tkinter as tk
 from sql_connection import getsqlconnection
 from PIL import Image, ImageTk
+from Product_Page import ProductPage
 
 class Homepage():
-    def __init__(self):
+    def __init__(self, user_id=3):
         self.root = tk.Tk()
         self.root.title("Home Page")
         self.root.configure(bg="#C4DAD2")
         self.root.geometry('1280x720')
         self.connection = getsqlconnection()
+
+        self.user_id=user_id
 
         image1 = tk.PhotoImage(file="icons/Logo.png")
         self.image_label = tk.Label(self.root, image=image1, bg='#C4DAD2')
@@ -72,7 +75,7 @@ class Homepage():
                                     onvalue=1, offvalue=0, font='Lato 12', bg='white', 
                                     command=self.togglecheckbox)
             button.pack(anchor="w", padx=20)
-
+        cursor.close()
 
 
         priceText = tk.Label(scrollableFrame, text="By Price:", font='Lato 16 bold', bg='white')
@@ -123,6 +126,7 @@ class Homepage():
                 'category_id' :category_id,
                 'seller_id' : seller_id
             })
+        cursor.close()
 
         self.product_images = []
 
@@ -147,6 +151,8 @@ class Homepage():
 
             product_canvas.create_text(110, 150, text=name, font='Lato 16 bold', fill='black')
             product_canvas.create_text(110, 180, text=price, font='Lato 14', fill='grey')
+
+            self.bind_product_click(product_canvas, d)
             
 
         self.current_search_query = ""
@@ -233,6 +239,14 @@ class Homepage():
             product_canvas.create_text(110, 150, text=name, font='Lato 16 bold', fill='black')
             product_canvas.create_text(110, 180, text=price, font='Lato 14', fill='grey')
 
+            self.bind_product_click(product_canvas, product)
+
+    def bind_product_click(self, canvas, product):
+        canvas.bind("<Button-1>", lambda event: self.on_product_click(event, product))
+
+    def on_product_click(self, event, product):
+        self.root.destroy()
+        ProductPage(product, self.user_id, self)
 
     
     def on_frame_configure(self,event):
