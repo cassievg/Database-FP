@@ -2,6 +2,7 @@ import tkinter as tk
 from sql_connection import getsqlconnection
 from PIL import Image, ImageTk
 from Product_Page import ProductPage
+from Cart_Page import CartPage
 
 class Homepage():
     def __init__(self, user_id=3):
@@ -130,8 +131,11 @@ class Homepage():
 
         self.product_images = []
 
+        available_products = [product for product in self.products if product['remaining_stock'] > 0]
         columns = 3
-        for index, d in enumerate(self.products):
+        for index, d in enumerate(available_products):
+            if d['remaining_stock']<=0: continue
+
             row = index // columns
             col = index % columns
             
@@ -217,8 +221,9 @@ class Homepage():
         for widget in self.scrollableFrame2.winfo_children():
             widget.destroy()
 
+        available_products = [product for product in self.displayProducts if product['remaining_stock'] > 0]
         columns = 3
-        for index, product in enumerate(self.displayProducts):
+        for index, product in enumerate(available_products):
             row = index // columns
             col = index % columns
 
@@ -262,7 +267,8 @@ class Homepage():
         self.canvas2.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def goToCart(self):
-        print("Going to cart...")
+        self.root.destroy()
+        CartPage(self.user_id, self)
 
     def goToSetting(self):
         print("Going to settings...")

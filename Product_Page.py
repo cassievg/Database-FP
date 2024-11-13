@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from sql_connection import getsqlconnection
+from Cart_Page import CartPage
 
 class ProductPage():
     def __init__(self, product_dict, user_id, homeroot):
@@ -114,7 +115,8 @@ class ProductPage():
         self.root.mainloop()
 
     def goToCart(self):
-        print("Going to cart...")
+        self.root.destroy()
+        CartPage(self.user_id, self.home_root)
 
     def goToSetting(self):
         print("Going to settings...")
@@ -143,6 +145,10 @@ class ProductPage():
         quantity =1
         if result: quantity += result[0]
         cursor.close()
+
+        if(self.product_dict['remaining_stock']<quantity):
+            messagebox.showerror("Stock Error", f"Insufficient stock for this product. Available: {self.product_dict['remaining_stock']}, Required: {quantity}")
+            return
 
         cursor = self.connection.cursor()
         cursor.execute(f"SELECT productPrice FROM product WHERE productID = {product_id}")
