@@ -182,10 +182,12 @@ class CartPage():
 
 
     def delete_product(self, product_canvas, product_id):
-        product_canvas.destroy()
-        cursor = self.connection.cursor()
-        cursor.execute(f"DELETE FROM cart_items WHERE productID = {product_id};")
-        self.connection.commit()
+        answer = messagebox.askyesno(title='confirmation', message='Are you sure that you want to delete?')
+        if answer:
+            product_canvas.destroy()
+            cursor = self.connection.cursor()
+            cursor.execute(f"DELETE FROM cart_items WHERE productID = {product_id};")
+            self.connection.commit()
 
 
     def goToSetting(self):

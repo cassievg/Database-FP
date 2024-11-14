@@ -1,13 +1,21 @@
 import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
 from PIL import Image, ImageTk
 from tkinter import simpledialog
+from sql_connection import getsqlconnection
 
 class EditProductPage():
-    def __init__(self):
+    def __init__(self, seller_id, sellerhome, product_dict):
         self.root = tk.Tk()
         self.root.title("Edit Product Page")
         self.root.configure(bg="#C4DAD2")
         self.root.geometry('1280x720')
+
+        self.connection =getsqlconnection()
+        self.seller_id = seller_id
+        self.seller_home_root = sellerhome
+        self.product_dict = product_dict
 
         yourShopText = tk.Label(self.root, text="EDIT PRODUCT", font='Lato 24 bold', bg='#C4DAD2')
         yourShopText.place(x=32, y=33)
@@ -37,9 +45,12 @@ class EditProductPage():
 
         self.entries = []
         self.entry_title = ['Product Name', 'Price', 'Product Description', 'Remaining Stock', 'Category']
+        self.dict_title = ['product_name','product_price','product_description','remaining_stock','category']
+        self.product_dict['category'] = self.get_categoryName(self.product_dict['category_id'])
 
         for i in range(len(self.entry_title)):
             e = self.entry_title[i]
+            d = self.dict_title[i]
 
             label_frame = tk.Frame(scrollableFrame, bg='#C4DAD2')
             label_frame.pack(pady=(5, 5), anchor='w')
@@ -54,16 +65,18 @@ class EditProductPage():
             if e == 'Product Description':
                 text_area = tk.Text(scrollableFrame, height=10, width=50, font=('Lato', 14), wrap='word', bg='white', fg='black')
                 text_area.pack(pady=(0, 20), anchor='w')
+                text_area.insert('1.0', self.product_dict[d])
                 self.entries.append(text_area)
             else:
                 entry = tk.Entry(scrollableFrame, background='white', foreground='black', font=('Lato', 16), width=50)
                 entry.pack(pady=(0, 20), anchor='w')
+                entry.insert(0, self.product_dict[d])
                 self.entries.append(entry)
 
         imageProductTitle = tk.Label(self.root, text='Product Image', font='Lato 16 bold', bg='#C4DAD2', fg='black')
         imageProductTitle.place(x=120, y=170, anchor='w')
         
-        img = Image.open("icons/placeholder.png")
+        img = Image.open(f"images/{self.product_dict['product_image']}")
         img = img.resize((300,200))
         photoImg =  ImageTk.PhotoImage(img)
         self.imageCut = tk.Label(self.root, image=photoImg)
@@ -76,10 +89,21 @@ class EditProductPage():
     
 
     def editImage(self):
-        print('edit image...')
+        self.file_name = filedialog.askopenfilename()
+        if not self.file_name.lower().endswith(('.jpg', '.png')):
+            messagebox.showerror("Error","File types must be of the jpg or png type")
+        else:
+            product_image = Image.open(self.file_name)
+            self.product_image = product_image.resize((300,200))
+            self.product_image = ImageTk.PhotoImage(self.product_image)
+
+            self.imageCut = tk.Label(self.root2, image=self.product_image)
+            self.imageCut.place(x=860, y=300, anchor='w')
+
 
     def goBack(self):
-        print("Going back...")
+        self.root.destroy()
+        self.seller_home_root.__class__(self.seller_id)
 
     def goToSetting(self):
         print("Going to settings...")
@@ -115,8 +139,14 @@ class EditProductPage():
                     self.entries[num].delete(0, tk.END)
                     self.entries[num].insert(0, str(newinput))
 
+    def get_categoryName(self,categoryID):
+        categoryName = ""
+        cursor = self.connection.cursor()
+        cursor.execute(f"SELECT (`categoryName`) FROM `onlinestore`.`category` WHERE categoryID = {categoryID}")
+        products = cursor.fetchone()
+        categoryName = products[0]
+        cursor.close()
+        return categoryName
 
 
-
-
-EditProductPage()
+# edit product page harusnya tinggal insert updated valuenya ke database

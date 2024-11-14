@@ -1,11 +1,19 @@
 import tkinter as tk
+from sql_connection import getsqlconnection
+from PIL import Image, ImageTk
+from tkinter import messagebox
+from Edit_Product_Page import EditProductPage
+# from Add_Product_Page import AddProductPage
 
 class SellerHomePage():
-    def __init__(self):
+    def __init__(self, sellerID):
         self.root = tk.Tk()
         self.root.title("Seller Home Page")
         self.root.configure(bg="#C4DAD2")
         self.root.geometry('1280x720')
+
+        self.connection = getsqlconnection()
+        self.sellerID = sellerID
 
         yourShopText = tk.Label(self.root, text="YOUR SHOP", font='Lato 24 bold', bg='#C4DAD2')
         yourShopText.place(x=32, y=33)
@@ -23,10 +31,14 @@ class SellerHomePage():
         self.canvas1 = tk.Canvas(self.shopFrame, bg="#C4DAD2", highlightthickness=1, highlightbackground='black')
         self.canvas1.pack(side="left", fill="both", expand=True)
 
-        sellerName = tk.Label(self.shopFrame, text="Seller Name", font='Lato 20 bold', bg='#C4DAD2')
+        cursor = self.connection.cursor()
+        cursor.execute(f'SELECT fName, lName, address FROM user WHERE userID={self.sellerID}')
+        seller_details = cursor.fetchone()
+
+        sellerName = tk.Label(self.shopFrame, text=seller_details[0]+' '+seller_details[1], font='Lato 20 bold', bg='#C4DAD2')
         sellerName.place(x=508, y=20)
 
-        sellerAddress = tk.Label(self.shopFrame, text="Seller Address", font='Lato 16', bg='#C4DAD2')
+        sellerAddress = tk.Label(self.shopFrame, text=seller_details[2], font='Lato 16', bg='#C4DAD2')
         sellerAddress.place(x=518, y=70)
 
 
@@ -42,7 +54,7 @@ class SellerHomePage():
         self.productframe.place(x=52, y=310, width=1190, height=300)
 
         self.canvas = tk.Canvas(self.productframe, bg="#C4DAD2", highlightthickness=0)
-        scrollableFrame = tk.Frame(self.canvas, bg="#C4DAD2")
+        self.scrollableFrame = tk.Frame(self.canvas, bg="#C4DAD2")
 
         scrollbar = tk.Scrollbar(self.productframe, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=scrollbar.set)
@@ -50,52 +62,69 @@ class SellerHomePage():
         self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        self.canvas.create_window((0, 0), window=scrollableFrame, anchor="nw")
-        scrollableFrame.bind("<Configure>", self.on_frame_configure)
+        self.canvas.create_window((0, 0), window=self.scrollableFrame, anchor="nw")
+        self.scrollableFrame.bind("<Configure>", self.on_frame_configure)
         self.canvas.bind_all("<MouseWheel>", self._on_mouse_wheel)
 
-        self.products = [
-            {'name': 'Table', 'price': 'Rp 50.000', 'image': 'placeholder.png'},
-            {'name': 'Chair', 'price': 'Rp 52.000', 'image': 'placeholder.png'},
-            {'name': 'T-Shirt', 'price': 'Rp 43.000', 'image': 'placeholder.png'},
-            {'name': 'Paper', 'price': 'Rp 14.000', 'image': 'placeholder.png'},
-            {'name': 'Bracelet', 'price': 'Rp 100.000', 'image': 'placeholder.png'},
-            {'name': 'Necklace', 'price': 'Rp 112.000', 'image': 'placeholder.png'},
-            {'name': 'Wallet', 'price': 'Rp 45.000', 'image': 'placeholder.png'},
-            {'name': 'Mug', 'price': 'Rp 23.000', 'image': 'placeholder.png'}
-        ]
+        cursor = self.connection.cursor()
+        query = f"SELECT * FROM product WHERE sellerID={self.sellerID};"
+        cursor.execute(query)
+        self.products = []
+
+        for (product_id, product_name, product_price, product_image, product_description, remaining_stock, category_id, seller_id) in cursor:
+            self.products.append({
+                'product_id':product_id,
+                'product_name' : product_name,
+                'product_price':product_price,
+                'product_image':product_image,
+                'product_description' : product_description,
+                'remaining_stock' : remaining_stock,
+                'category_id' :category_id,
+                'seller_id' : seller_id
+            })
+        cursor.close()
 
         self.product_images = []
 
         for d in self.products:
-            name = d['name']
-            price = d['price']
-            image_path = 'icons/' + d['image']
+            name = d['product_name']
+            price = d['product_price']
+            price = "Rp {:,.0f}".format(price).replace(",", ".")
+            image_path = 'images/' + d['product_image']
 
-            product_canvas = tk.Canvas(scrollableFrame, width=1130, height=150, bg="white", highlightthickness=0)
+            product_canvas = tk.Canvas(self.scrollableFrame, width=1130, height=150, bg="white", highlightthickness=0)
             product_canvas.grid(padx=25, pady=20)
 
-            product_image = tk.PhotoImage(file=image_path)
-            self.product_images.append(product_image)
-            product_canvas.create_image(130, 70, image=product_image)
+            img = Image.open(image_path)
+            img = img.resize((150,100))
+            photoImg =  ImageTk.PhotoImage(img)
+            self.product_images.append(photoImg)  
+            product_canvas.create_image(110, 70, image=photoImg)
 
             product_canvas.create_text(230, 35, text=name, font='Lato 16 bold', fill='black', anchor='w')
             product_canvas.create_text(230, 70, text=price, font='Lato 14', fill='grey', anchor='w')
 
-            delete_button = tk.Button(scrollableFrame, text="X", command=lambda pc=product_canvas: self.delete_product(pc), width=3, bg='lightcoral', font='Lato 14 bold')
+            delete_button = tk.Button(self.scrollableFrame, text="X", command=lambda pc=product_canvas, pid=d['product_id']: self.delete_product(pc,pid), width=3, bg='lightcoral', font='Lato 14 bold')
             product_canvas.create_window(1100, 25, window=delete_button)
 
-            edit_button = tk.Button(scrollableFrame, text="Edit", command=lambda pc=d: self.edit_product(pc), width=3, bg='lightgray', font='Lato 14 bold')
+            edit_button = tk.Button(self.scrollableFrame, text="Edit", command=lambda pc=d: self.edit_product(pc), width=3, bg='lightgray', font='Lato 14 bold')
             product_canvas.create_window(1070, 110, window=edit_button, width=100)
 
         self.root.mainloop()
     
 
     def edit_product(self, dict):
-        print(dict)
+        self.root.destroy()
+        EditProductPage(self.sellerID, self, dict)
 
-    def delete_product(self, product_canvas):
-        product_canvas.destroy()
+
+    def delete_product(self, product_canvas, product_id):
+        answer = messagebox.askyesno(title='confirmation', message='Are you sure that you want to delete?')
+        if answer:
+            product_canvas.destroy()
+            cursor = self.connection.cursor()
+            cursor.execute(f"DELETE FROM `onlinestore`.`product` WHERE `productID` = {product_id}")
+            self.connection.commit()
 
     def goToSetting(self):
         print("Going to settings...")
@@ -103,11 +132,50 @@ class SellerHomePage():
     def addProduct(self):
         print("Adding product...")
 
-    def editProduct(self):
-        print("Editing product...")
-
     def search(self):
-        print('Searching...')
+        self.current_search_query = self.searchbarField.get().strip().lower()
+        self.updateProductDisplay()
+
+    def updateProductDisplay(self):
+        filtered_products = self.products
+
+        if self.current_search_query:
+            filtered_products = [
+                product for product in filtered_products
+                if self.current_search_query in product['product_name'].lower()
+            ]
+
+        self.displayProducts = filtered_products
+
+        for widget in self.scrollableFrame.winfo_children():
+            widget.destroy()
+
+        available_products = [product for product in self.displayProducts if product['remaining_stock'] > 0]
+        for d in available_products:
+            name = d['product_name']
+            price = d['product_price']
+            price = "Rp {:,.0f}".format(price).replace(",", ".")
+            image_path = 'images/' + d['product_image']
+
+            product_canvas = tk.Canvas(self.scrollableFrame, width=1130, height=150, bg="white", highlightthickness=0)
+            product_canvas.grid(padx=25, pady=20)
+
+            img = Image.open(image_path)
+            img = img.resize((150,100))
+            photoImg =  ImageTk.PhotoImage(img)
+            self.product_images.append(photoImg)  
+            product_canvas.create_image(110, 70, image=photoImg)
+
+            product_canvas.create_text(230, 35, text=name, font='Lato 16 bold', fill='black', anchor='w')
+            product_canvas.create_text(230, 70, text=price, font='Lato 14', fill='grey', anchor='w')
+
+            delete_button = tk.Button(self.scrollableFrame, text="X", command=lambda pc=product_canvas, pid=d['product_id']: self.delete_product(pc,pid), width=3, bg='lightcoral', font='Lato 14 bold')
+            product_canvas.create_window(1100, 25, window=delete_button)
+
+            edit_button = tk.Button(self.scrollableFrame, text="Edit", command=lambda pc=d: self.edit_product(pc), width=3, bg='lightgray', font='Lato 14 bold')
+            product_canvas.create_window(1070, 110, window=edit_button, width=100)
+
+
 
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -115,4 +183,4 @@ class SellerHomePage():
     def _on_mouse_wheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
-SellerHomePage()
+SellerHomePage(1)
