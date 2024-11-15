@@ -1,12 +1,21 @@
+import os
+import shutil
 import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
 from PIL import Image, ImageTk
+from sql_connection import getsqlconnection
 
 class AddProductPage():
-    def __init__(self):
+    def __init__(self, seller_id, homepageroot):
         self.root = tk.Tk()
         self.root.title("Add Product Page")
         self.root.configure(bg="#C4DAD2")
         self.root.geometry('1280x720')
+
+        self.seller_id = seller_id
+        self.homepage_root = homepageroot
+        self.connection = getsqlconnection()
 
         yourShopText = tk.Label(self.root, text="ADD PRODUCT", font='Lato 24 bold', bg='#C4DAD2')
         yourShopText.place(x=32, y=33)
@@ -39,6 +48,9 @@ class AddProductPage():
 
         self.entries = []
         self.entry_title = ['Product Name', 'Price', 'Product Description', 'Remaining Stock', 'Category']
+        self.keys = ['productName','productPrice','productDescription','remainingStock','category','productImage']
+        self.product_dict = dict.fromkeys(self.keys)
+        self.product_dict['productImage'] ='placeholder.png'
 
         for e in self.entry_title:
             label = tk.Label(scrollableFrame, text=e, font='Lato 16 bold', bg='#C4DAD2')
@@ -47,7 +59,6 @@ class AddProductPage():
             if e == 'Product Description':
                 text_area = tk.Text(scrollableFrame, height=10, width=50, font=('Lato', 14), wrap='word', bg='white', fg='black')
                 text_area.pack(pady=(0, 20), anchor='w')
-                text_area.insert('1.0', "Enter your text here...")
                 self.entries.append(text_area)
             else:
                 entry = tk.Entry(scrollableFrame, background='white', foreground='black', font=('Lato', 16), width=50)
@@ -58,7 +69,7 @@ class AddProductPage():
         imageProductTitle = tk.Label(self.root, text='Product Image', font='Lato 16 bold', bg='#C4DAD2', fg='black')
         imageProductTitle.place(x=935, y=170, anchor='w')
 
-        img = Image.open("icons/placeholder.png")
+        img = Image.open("images/placeholder.png")
         img = img.resize((300,200))
         photoImg =  ImageTk.PhotoImage(img)
         self.imageCut = tk.Label(self.root, image=photoImg)
@@ -69,13 +80,76 @@ class AddProductPage():
 
         self.root.mainloop()
 
+
     def editImage(self):
-        print('edit image...')
+        self.file_name = filedialog.askopenfilename()
+        if not self.file_name.lower().endswith(('.jpeg', '.jpg', '.png')):
+            messagebox.showerror("Error", "File types must be of the jpg or png type")
+        else:
+            images_folder = "images"
+            if not os.path.exists(images_folder):
+                os.makedirs(images_folder)
+            
+            basefilename = os.path.basename(self.file_name)
+            dest_path = os.path.join(images_folder, basefilename)
+            shutil.copy(self.file_name, dest_path)
+
+            product_image = Image.open(dest_path)
+            self.product_image = product_image.resize((300, 200))
+            self.product_image = ImageTk.PhotoImage(self.product_image)
+            self.imageCut = tk.Label(self.root, image=self.product_image)
+            self.imageCut.place(x=860, y=300, anchor='w')
+
+            self.product_dict['productImage'] = basefilename
+
     def okClicked(self):
-        print('ok...')
+        for i, entry in enumerate(self.entries):
+            if isinstance(entry, tk.Text):
+                self.product_dict[self.keys[i]] = entry.get("1.0", tk.END).strip()
+            else:
+                self.product_dict[self.keys[i]] = entry.get().strip()
+
+        for i, (key, val) in enumerate(self.product_dict.items()):
+            if not val:  # Empty value
+                messagebox.showerror('Error', f'{self.entry_title[i]} cannot be empty.')
+                return  # Exit if any field is empty
+        
+        try:
+            if self.product_dict['productPrice']:
+                self.product_dict['productPrice'] = float(self.product_dict['productPrice'])
+        except ValueError:
+            messagebox.showerror("Error", "Price must be a valid number.")
+            return
+
+        try:
+            if self.product_dict['remainingStock']:
+                self.product_dict['remainingStock'] = int(self.product_dict['remainingStock'])
+        except ValueError:
+            messagebox.showerror("Error", "Remaining stock must be an integer.")
+            return
+
+        category_id = self.get_categoryID(self.product_dict['category'])
+        del self.product_dict['category']
+        self.product_dict['categoryID'] = category_id
+
+        self.product_dict['sellerID'] =self.seller_id
+        columns = ', '.join(self.product_dict.keys())
+        placeholders = ', '.join(['%s'] * len(self.product_dict))
+        query = f"INSERT INTO product ({columns}) VALUES ({placeholders})"
+
+        cursor = self.connection.cursor()
+        cursor.execute(query, tuple(self.product_dict.values()))
+        self.connection.commit()
+
+        messagebox.showinfo("Success", "Product added successfully.")
+        self.root.destroy()
+        self.homepage_root.__class__(self.seller_id)
+
+
 
     def goBack(self):
-        print("Going back...")
+        self.root.destroy()
+        self.homepage_root.__class__(self.seller_id)
 
     def goToSetting(self):
         print("Going to settings...")
@@ -86,4 +160,18 @@ class AddProductPage():
     def _on_mouse_wheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
-AddProductPage()
+    def get_categoryID(self, categoryName):
+        cursor =self.connection.cursor()
+        cursor.execute("SELECT categoryID FROM category WHERE categoryName = %s", (categoryName,))
+        category_id_result = cursor.fetchone()
+        
+        if category_id_result:
+            category_id = category_id_result[0]
+            return category_id
+        else:
+            cursor.execute("INSERT INTO category (categoryName) VALUES (%s)", (categoryName,))
+            self.connection.commit()
+            cursor.execute("SELECT categoryID FROM category WHERE categoryName = %s", (categoryName,))
+            category_id = cursor.fetchone()[0]
+            return category_id
+

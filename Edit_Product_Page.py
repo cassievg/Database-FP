@@ -1,8 +1,8 @@
+import os
+import shutil
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import messagebox
+from tkinter import filedialog, messagebox, simpledialog
 from PIL import Image, ImageTk
-from tkinter import simpledialog
 from sql_connection import getsqlconnection
 
 class EditProductPage():
@@ -46,6 +46,7 @@ class EditProductPage():
         self.entries = []
         self.entry_title = ['Product Name', 'Price', 'Product Description', 'Remaining Stock', 'Category']
         self.dict_title = ['product_name','product_price','product_description','remaining_stock','category']
+        self.query_title = ['productName','productPrice','productDescription','remainingStock','categoryID']
         self.product_dict['category'] = self.get_categoryName(self.product_dict['category_id'])
 
         for i in range(len(self.entry_title)):
@@ -66,11 +67,13 @@ class EditProductPage():
                 text_area = tk.Text(scrollableFrame, height=10, width=50, font=('Lato', 14), wrap='word', bg='white', fg='black')
                 text_area.pack(pady=(0, 20), anchor='w')
                 text_area.insert('1.0', self.product_dict[d])
+                text_area.config(state='disabled')
                 self.entries.append(text_area)
             else:
                 entry = tk.Entry(scrollableFrame, background='white', foreground='black', font=('Lato', 16), width=50)
                 entry.pack(pady=(0, 20), anchor='w')
                 entry.insert(0, self.product_dict[d])
+                entry.config(state='readonly')
                 self.entries.append(entry)
 
         imageProductTitle = tk.Label(self.root, text='Product Image', font='Lato 16 bold', bg='#C4DAD2', fg='black')
@@ -90,16 +93,26 @@ class EditProductPage():
 
     def editImage(self):
         self.file_name = filedialog.askopenfilename()
-        if not self.file_name.lower().endswith(('.jpg', '.png')):
-            messagebox.showerror("Error","File types must be of the jpg or png type")
+        if not self.file_name.lower().endswith(('.jpeg', '.jpg', '.png')):
+            messagebox.showerror("Error", "File types must be of the jpg or png type")
         else:
-            product_image = Image.open(self.file_name)
-            self.product_image = product_image.resize((300,200))
+            images_folder = "images"
+            if not os.path.exists(images_folder):
+                os.makedirs(images_folder)
+            
+            basefilename = os.path.basename(self.file_name)
+            dest_path = os.path.join(images_folder, basefilename)
+            shutil.copy(self.file_name, dest_path)
+
+            product_image = Image.open(dest_path)
+            self.product_image = product_image.resize((300, 200))
             self.product_image = ImageTk.PhotoImage(self.product_image)
+            self.imageCut = tk.Label(self.root, image=self.product_image)
+            self.imageCut.place(x=52, y=300, anchor='w')
 
-            self.imageCut = tk.Label(self.root2, image=self.product_image)
-            self.imageCut.place(x=860, y=300, anchor='w')
-
+            cursor =self.connection.cursor()
+            cursor.execute(f"UPDATE product SET productImage='{basefilename}' WHERE productID={self.product_dict['product_id']}")
+            self.connection.commit()
 
     def goBack(self):
         self.root.destroy()
@@ -121,23 +134,49 @@ class EditProductPage():
             if newnum:
                 self.entries[num].delete(0, tk.END)
                 self.entries[num].insert(0, str(newnum))
+            cursor = self.connection.cursor()
+            cursor.execute(f"UPDATE product SET productPrice={newnum} WHERE productID={self.product_dict['product_id']};")
+            self.connection.commit()
+            cursor.close()
         
         elif num==3:
             newnum = simpledialog.askinteger('Input', 'Enter the remaining stock:')
             if newnum:
                 self.entries[num].delete(0, tk.END)
                 self.entries[num].insert(0, str(newnum))
+            cursor = self.connection.cursor()
+            cursor.execute(f"UPDATE product SET remainingStock={newnum} WHERE productID={self.product_dict['product_id']};")
+            self.connection.commit()
+            cursor.close()
         
         else:
+            titlequery = self.query_title[num] 
+            print(titlequery)
             s = 'Enter the new '+ self.entry_title[num].lower()
             newinput = simpledialog.askstring('Input', s)
             if newinput:
                 if num==2:
                     self.entries[num].delete("1.0", tk.END)
                     self.entries[num].insert("1.0", str(newinput))
+                    cursor = self.connection.cursor()
+                    cursor.execute(f"UPDATE product SET {titlequery}='{newinput}' WHERE productID={self.product_dict['product_id']};")
+                    self.connection.commit()
+                    cursor.close()
                 else:
                     self.entries[num].delete(0, tk.END)
                     self.entries[num].insert(0, str(newinput))
+
+                    if(num==4):
+                        category_id = self.get_categoryID(newinput)
+                        cursor = self.connection.cursor()
+                        cursor.execute(f"UPDATE product SET {titlequery}={category_id} WHERE productID={self.product_dict['product_id']};")
+                        self.connection.commit()
+                    else:
+                        cursor = self.connection.cursor()
+                        cursor.execute(f"UPDATE product SET {titlequery}='{newinput}' WHERE productID={self.product_dict['product_id']};")
+                        self.connection.commit()
+                    cursor.close()
+
 
     def get_categoryName(self,categoryID):
         categoryName = ""
@@ -147,6 +186,20 @@ class EditProductPage():
         categoryName = products[0]
         cursor.close()
         return categoryName
+    
+    def get_categoryID(self, categoryName):
+        cursor =self.connection.cursor()
+        cursor.execute("SELECT categoryID FROM category WHERE categoryName = %s", (categoryName,))
+        category_id_result = cursor.fetchone()
+        
+        if category_id_result:
+            category_id = category_id_result[0]
+            return category_id
+        else:
+            cursor.execute("INSERT INTO category (categoryName) VALUES (%s)", (categoryName,))
+            self.connection.commit()
+            cursor.execute("SELECT categoryID FROM category WHERE categoryName = %s", (categoryName,))
+            category_id = cursor.fetchone()[0]
+            return category_id
 
 
-# edit product page harusnya tinggal insert updated valuenya ke database

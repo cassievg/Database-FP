@@ -3,7 +3,7 @@ from sql_connection import getsqlconnection
 from PIL import Image, ImageTk
 from tkinter import messagebox
 from Edit_Product_Page import EditProductPage
-# from Add_Product_Page import AddProductPage
+from Add_Product_Page import AddProductPage
 
 class SellerHomePage():
     def __init__(self, sellerID):
@@ -91,6 +91,7 @@ class SellerHomePage():
             price = d['product_price']
             price = "Rp {:,.0f}".format(price).replace(",", ".")
             image_path = 'images/' + d['product_image']
+            stock = 'Remaining stock: ' + str(d['remaining_stock'])
 
             product_canvas = tk.Canvas(self.scrollableFrame, width=1130, height=150, bg="white", highlightthickness=0)
             product_canvas.grid(padx=25, pady=20)
@@ -103,6 +104,7 @@ class SellerHomePage():
 
             product_canvas.create_text(230, 35, text=name, font='Lato 16 bold', fill='black', anchor='w')
             product_canvas.create_text(230, 70, text=price, font='Lato 14', fill='grey', anchor='w')
+            product_canvas.create_text(230, 105, text=stock, font='Lato 14', fill='grey', anchor='w')
 
             delete_button = tk.Button(self.scrollableFrame, text="X", command=lambda pc=product_canvas, pid=d['product_id']: self.delete_product(pc,pid), width=3, bg='lightcoral', font='Lato 14 bold')
             product_canvas.create_window(1100, 25, window=delete_button)
@@ -130,7 +132,8 @@ class SellerHomePage():
         print("Going to settings...")
 
     def addProduct(self):
-        print("Adding product...")
+        self.root.destroy()
+        AddProductPage(self.sellerID, self)
 
     def search(self):
         self.current_search_query = self.searchbarField.get().strip().lower()
