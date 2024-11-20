@@ -75,6 +75,10 @@ def submit():
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
     # Clear fields
     emailVar.set("")
     pwVar.set("")
