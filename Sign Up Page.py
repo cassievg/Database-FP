@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 import webbrowser
+from sql_connection import getsqlconnection
 
 def callback(url):
     webbrowser.open_new(url)
@@ -64,20 +65,65 @@ addressVar = tk.StringVar()
 phonenumVar = tk.StringVar()
 emailVar = tk.StringVar()
 pwVar = tk.StringVar()
+roleVar = tk.IntVar()
 
 # Function for submit
+# Function for submit
 def submit():
+    fName = fNameVar.get()
+    lName = lNameVar.get()
+    address = addressVar.get()
+    phoneNo = phonenumVar.get()
     email = emailVar.get()
     password = pwVar.get()
-    print("Email: " + email)
-    print("Password: " + password)
-    emailVar.set("")
-    pwVar.set("")
+    role = roleVar.get()
 
-# Function for radio buttons
-def sel():
-   selection = "You selected the option " + str(var.get())
-   label.config(text=selection)
+    # Convert role integer input to string
+    if role == 1:
+        role_str = "customer"
+    else:
+        role_str = "seller"
+
+    # Validate input fields
+    if not all([fName, lName, address, phoneNo, email, password, role]):
+        messagebox.showerror("Input Error", "Missing fields.")
+        return
+
+    try:
+        # Connect to the database
+        connection = getsqlconnection()
+        cursor = connection.cursor()
+
+        # Check if the email already exists
+        query_check = "SELECT * FROM users WHERE email = %s"
+        cursor.execute(query_check, (email))
+        if cursor.fetchone():
+            messagebox.showerror("Signup Error", "This Email already exists.")
+            return
+
+        # Insert the new user into the database
+        query_insert = """
+        INSERT INTO users (first_name, last_name, address, phone_number, email, password, role)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query_insert, (fName, lName, address, phoneNo, email, password, role_str))
+
+        # Save changes
+        connection.commit()
+
+        messagebox.showinfo("Signup Success", "Your account has been successfully created.")
+
+        # Clear the form fields
+        fNameVar.set("")
+        lNameVar.set("")
+        addressVar.set("")
+        phonenumVar.set("")
+        emailVar.set("")
+        pwVar.set("")
+        roleVar.set(0)
+
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
 # Add form labels and entries to the scrollable frame
 form_elements = [
@@ -95,13 +141,9 @@ for label_text, var in form_elements:
     entry.pack(anchor="w", pady=10)
 
 # Role selection (radio buttons)
-roleLabel = tk.Label(scrollableFrame, text='Role', bg="#C4DAD2", font=('Lato', 16, 'bold'))
-roleLabel.pack(anchor="w", pady=10)
-
-var = tk.IntVar()
-cust = tk.Radiobutton(scrollableFrame, text="Customer", bg="#C4DAD2", font=('Lato', 16, 'normal'), variable=var, value=1, command=sel)
+cust = tk.Radiobutton(scrollableFrame, text="Customer", bg="#C4DAD2", font=('Lato', 16, 'normal'), variable=roleVar, value=1)
 cust.pack(anchor="w")
-sell = tk.Radiobutton(scrollableFrame, text="Seller", bg="#C4DAD2", font=('Lato', 16, 'normal'), variable=var, value=2, command=sel)
+sell = tk.Radiobutton(scrollableFrame, text="Seller", bg="#C4DAD2", font=('Lato', 16, 'normal'), variable=roleVar, value=2)
 sell.pack(anchor="w")
 
 # Selection label
