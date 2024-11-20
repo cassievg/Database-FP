@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 import webbrowser
+from sql_connection import getsqlconnection
 
 def callback(url):
     webbrowser.open_new(url)
@@ -41,23 +42,42 @@ loginText.pack(anchor="n")
 # Declaring string vars to store email and password
 emailVar = tk.StringVar()
 pwVar = tk.StringVar()
+roleVar = tk.IntVar()
 
 # Function for submit
 def submit():
 
     email = emailVar.get()
     password = pwVar.get()
+    role = roleVar.get()
+
+    # Convert role integer input to string
+    if role == 1:
+        role_str = "customer"
+    else:
+        role_str = "seller"
     
-    print("Email: " + email)
-    print("Password: " + password)
-    
+    try:
+        # Connect to the database
+        connection = getsqlconnection()
+        cursor = connection.cursor()
+
+        # SQL query to check if user exists
+        query = "SELECT * FROM users WHERE email = %s AND password = %s AND role = %s"
+        cursor.execute(query, (email, password, role_str))
+        result = cursor.fetchone()
+
+        if result:
+            messagebox.showinfo("Login Success", f"Welcome {email}!")
+        else:
+            messagebox.showerror("Login Failed", "Incorrect or Invalid credentials. Please try again.")
+
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    # Clear fields
     emailVar.set("")
     pwVar.set("")
-
-# Function for radio buttons
-def sel():
-   selection = "You selected the option " + str(var.get())
-   label.config(text = selection)
 
 # Create a label for email
 emailLabel = tk.Label(loginFormFrame, text = 'Email', bg="#C4DAD2", font=('Lato', 18, 'bold'))
@@ -76,17 +96,10 @@ pwEntry = tk.Entry(loginFormFrame, textvariable = pwVar, font = ('Lato', 16, 'no
 pwEntry.pack(anchor="w", pady=10)
  
 # Create a label for role
-roleLabel = tk.Label(loginFormFrame, text = 'Role', bg="#C4DAD2", font = ('Lato', 18, 'bold'))
-roleLabel.pack(anchor="w", pady=10)
-
-# Create radio buttons
-var = tk.IntVar()
-cust = tk.Radiobutton(loginFormFrame, text="Customer", bg="#C4DAD2", font = ('Lato', 16, 'normal'), variable=var, value=1, command=sel)
+cust = tk.Radiobutton(loginFormFrame, text="Customer", bg="#C4DAD2", font=('Lato', 16, 'normal'), variable=roleVar, value=1)
 cust.pack(anchor="w")
-sell = tk.Radiobutton(loginFormFrame, text="Seller", bg="#C4DAD2", font = ('Lato', 16, 'normal'), variable=var, value=2, command=sel)
+sell = tk.Radiobutton(loginFormFrame, text="Seller", bg="#C4DAD2", font=('Lato', 16, 'normal'), variable=roleVar, value=2)
 sell.pack(anchor="w")
-label = tk.Label(loginFormFrame, bg="#C4DAD2", font = ('Lato', 16, 'normal'))
-label.pack()
 
 # Create a button for login/submit
 submitButton = tk.Button(loginFormFrame, text = 'Login', bg="#5B8676", fg='white', font = ('Lato', 12, 'normal'), command = submit)
@@ -98,3 +111,4 @@ signup.pack(side="left")
 signup.bind("<Button-1>", lambda e: callback("https://www.figma.com/design/4RUsaw0PlEYKsbcCDe9EGG/Database-(Online-Store)?node-id=0-1&node-type=canvas&t=YM2GzmleMybZS2GS-0"))
 
 root.mainloop()
+
