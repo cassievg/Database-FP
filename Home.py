@@ -273,4 +273,4 @@ class Homepage():
     def goToSetting(self):
         print("Going to settings...")
 
-Homepage()
+# Homepage()
