@@ -186,4 +186,4 @@ class SellerHomePage():
     def _on_mouse_wheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
-SellerHomePage(1)
+# SellerHomePage(1)

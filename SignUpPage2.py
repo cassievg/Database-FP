@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
 from sql_connection import getsqlconnection
+from Home import Homepage
+from Seller_HomePage import SellerHomePage
 
-class SignupPage2:
-    def __init__(self, userID):
-        self.userID = userID  # Accept userID as a parameter for linking payments
+class SignupPage2():
+    def __init__(self, userDict, signuproot):
+        self.userDict = userDict
+        self.signupRoot = signuproot
         self.root = tk.Tk()
         self.root.title("Sign Up Page - Payment Type")
         self.root.configure(bg="#C4DAD2")
@@ -46,41 +49,67 @@ class SignupPage2:
 
     def okClicked(self):
         try:
-            # Connect to the database
             connection = getsqlconnection()
             cursor = connection.cursor()
+            paymentDict = {}
 
             for paymentType, entry in self.entries:
                 paymentDetails = entry.get()
-
-                # Skip if no details are entered for this payment type
                 if not paymentDetails.strip():
                     continue
+                    
+                paymentDict[paymentType]= paymentDetails
+            
+            if not paymentDict:
+                messagebox.showerror("Error", f"At least one payment type have to be filled.")
+                return
 
-                # Insert payment details into the payments table
+            role_str = self.userDict['userType']
+            fName = self.userDict['fName']
+            lName= self.userDict['lName']
+            address= self.userDict['address']
+            phoneNo=self.userDict['phoneNumber']
+            password =self.userDict['password']
+            email =self.userDict['email']
+            
+            query_insert = """
+            INSERT INTO user (userType, fName, lName, address, phoneNumber, password, email)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query_insert, (role_str, fName, lName, address, phoneNo, password, email))
+            connection.commit()
+
+            cursor = connection.cursor()
+            query_id = """
+            SELECT * FROM user WHERE userType=%s AND fName=%s AND lName=%s AND address=%s 
+            AND phoneNumber=%s AND password=%s AND email=%s
+            """
+            cursor.execute(query_id, (role_str, fName, lName, address, phoneNo, password, email))
+            userid = cursor.fetchone()[0]
+
+            for key,val in paymentDict.items():
                 query = """
                 INSERT INTO payments (paymentType, paymentDetails, userID)
                 VALUES (%s, %s, %s)
                 """
-                cursor.execute(query, (paymentType, paymentDetails, self.userID))
+                cursor.execute(query, (key, val, userid))
 
-            # Commit the transaction
             connection.commit()
-            messagebox.showinfo("Success", "Payment details added successfully!")
+            messagebox.showinfo("Success", "Account created successfully!")
 
-            # Close window
             self.root.destroy()
+            if(role_str.lower()=='customer'): Homepage(userid)
+            else: SellerHomePage(userid)
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
-            
-        finally:
-            if 'connection' in locals():
-                connection.close()
+
 
     def goBack(self):
-        # Placeholder for navigation logic
-        print("Going back...")
         self.root.destroy()
+        self.signupRoot.__class__()
 
-SignupPage2()
+
+# KALAU MISALNYA USERNYA BACK, TAMBAHIN FITUR UTK TTP ADA DATA YG DI PAGE SEBELUMNYA
+
+
