@@ -3,6 +3,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 from sql_connection import getsqlconnection
 from Cart_Page import CartPage
+from User_Setting import UserSetting
 
 class ProductPage():
     def __init__(self, product_dict, user_id, homeroot):
@@ -119,7 +120,8 @@ class ProductPage():
         CartPage(self.user_id, self.home_root)
 
     def goToSetting(self):
-        print("Going to settings...")
+        self.root.destroy()
+        UserSetting(self.user_id, self.home_root)
 
     def goToHome(self):
         self.root.destroy()  

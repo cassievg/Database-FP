@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 from tkinter import messagebox
 from Edit_Product_Page import EditProductPage
 from Add_Product_Page import AddProductPage
+from User_Setting import UserSetting
 
 class SellerHomePage():
     def __init__(self, sellerID):
@@ -129,7 +130,8 @@ class SellerHomePage():
             self.connection.commit()
 
     def goToSetting(self):
-        print("Going to settings...")
+        self.root.destroy()
+        UserSetting(self.sellerID, self)
 
     def addProduct(self):
         self.root.destroy()

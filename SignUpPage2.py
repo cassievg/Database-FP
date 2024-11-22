@@ -89,7 +89,7 @@ class SignupPage2():
 
             for key,val in paymentDict.items():
                 query = """
-                INSERT INTO payments (paymentType, paymentDetails, userID)
+                INSERT INTO payment (paymentType, paymentDetails, userID)
                 VALUES (%s, %s, %s)
                 """
                 cursor.execute(query, (key, val, userid))
@@ -107,9 +107,8 @@ class SignupPage2():
 
     def goBack(self):
         self.root.destroy()
-        self.signupRoot.__class__()
+        self.signupRoot.__class__(self.signupRoot, self.userDict)
 
 
-# KALAU MISALNYA USERNYA BACK, TAMBAHIN FITUR UTK TTP ADA DATA YG DI PAGE SEBELUMNYA
 
 

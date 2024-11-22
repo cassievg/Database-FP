@@ -3,6 +3,7 @@ from sql_connection import getsqlconnection
 from PIL import Image, ImageTk
 from Product_Page import ProductPage
 from Cart_Page import CartPage
+from User_Setting import UserSetting
 
 class Homepage():
     def __init__(self, user_id=3):
@@ -271,6 +272,7 @@ class Homepage():
         CartPage(self.user_id, self)
 
     def goToSetting(self):
-        print("Going to settings...")
+        self.root.destroy()
+        UserSetting(self.user_id, self)
 
 # Homepage()

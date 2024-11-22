@@ -2,6 +2,7 @@ import tkinter as tk
 from sql_connection import getsqlconnection
 import datetime
 from tkinter import messagebox
+from User_Setting import UserSetting
 
 class SummaryPage():
     def __init__(self, cartpage, products, user_id, homeroot):
@@ -83,7 +84,8 @@ class SummaryPage():
     
 
     def goToSetting(self):
-        print("Going to settings...")
+        self.root.destroy()
+        UserSetting(self.user_id, self.home_root)
 
     def goToCart(self):
         self.root.destroy()

@@ -2,13 +2,12 @@ import tkinter as tk
 from tkinter import font, simpledialog, messagebox
 from sql_connection import getsqlconnection
 
-class UserSetting:
-    def __init__(self):
+class UserSetting():
+    def __init__(self, userid=1):
         self.connection = getsqlconnection()
         self.cursor = self.connection.cursor(dictionary=True)
 
-        # Set to the user ID of the current user
-        self.user_id = 1
+        self.user_id = userid
 
         self.root = tk.Tk()
         self.root.title("User Setting")

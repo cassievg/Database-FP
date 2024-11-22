@@ -4,12 +4,13 @@ from sql_connection import getsqlconnection
 from SignUpPage2 import SignupPage2
 
 class SignUpPage():
-    def __init__(self, loginpageroot):
+    def __init__(self, loginpageroot, userDict):
         self.root = tk.Tk()
         self.root.title("Sign Up Page")
         self.root.configure(bg="#C4DAD2")
         self.root.geometry('1280x720')
         self.loginPageRoot = loginpageroot
+        self.userDict = userDict
 
         content = tk.Frame(self.root, bg="#C4DAD2")
         content.pack(padx=20, pady=20)
@@ -49,15 +50,17 @@ class SignUpPage():
         self.roleVar = tk.IntVar()
 
         form_elements = [
-            ("First Name", self.fNameVar), ("Last Name", self.lNameVar),
-            ("Address", self.addressVar), ("Phone Number", self.phonenumVar),
-            ("Email", self.emailVar), ("Password", self.pwVar)
+            ("First Name", self.fNameVar, 'fName'), ("Last Name", self.lNameVar, 'lName'),
+            ("Address", self.addressVar, 'address'), ("Phone Number", self.phonenumVar, 'phoneNumber'),
+            ("Email", self.emailVar,'email'), ("Password", self.pwVar, 'password')
         ]
 
-        for label_text, var in form_elements:
+        for label_text, var, dict_label in form_elements:
             label = tk.Label(scrollableFrame, text=label_text, bg="#C4DAD2", font=('Lato', 16, 'bold'))
             label.pack(anchor="w", pady=10)
             entry = tk.Entry(scrollableFrame, textvariable=var, font=('Lato', 16, 'normal'))
+
+            if self.userDict : entry.insert(0, self.userDict[dict_label])
             if label_text == "Password":
                 entry.config(show="*")
             entry.pack(anchor="w", pady=10)
@@ -66,6 +69,10 @@ class SignUpPage():
         cust.pack(anchor="w")
         sell = tk.Radiobutton(scrollableFrame, text="Seller", bg="#C4DAD2", font=('Lato', 16, 'normal'), variable=self.roleVar, value=2)
         sell.pack(anchor="w")
+
+        if self.userDict:
+            if self.userDict['userType'].lower()=='customer': cust.select()
+            else: sell.select()
 
         label = tk.Label(scrollableFrame, bg="#C4DAD2", font=('Lato', 16, 'normal'))
         label.pack()

@@ -5,6 +5,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from sql_connection import getsqlconnection
+from User_Setting import UserSetting
 
 class AddProductPage():
     def __init__(self, seller_id, homepageroot):
@@ -152,7 +153,8 @@ class AddProductPage():
         self.homepage_root.__class__(self.seller_id)
 
     def goToSetting(self):
-        print("Going to settings...")
+        self.root.destroy()
+        UserSetting(self.seller_id, self.homepage_root)
 
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))

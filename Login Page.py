@@ -60,7 +60,7 @@ class LoginPage():
     
     def goToSignup(self, event=None):  
         self.root.destroy()
-        SignUpPage(self)
+        SignUpPage(self, {})
 
     def submit(self):
         email = self.emailVar.get()
