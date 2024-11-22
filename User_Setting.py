@@ -1,11 +1,11 @@
+import re
 import tkinter as tk
 from tkinter import font
 from tkinter import simpledialog, messagebox
-from RoleDialog import RoleDialog
 from sql_connection import getsqlconnection
 
 class UserSetting():
-    def __init__(self, userid=1, prevroot=None):
+    def __init__(self, userid, prevroot):
         self.root = tk.Tk()
         self.root.title("User Setting")
         self.userID = userid
@@ -59,10 +59,6 @@ class UserSetting():
 
         self.usertype_label = tk.Label(self.usertype_frame, text=self.userDict['userType'], bg="#FFFFFF")
         self.usertype_label.place(x=5, y=3)
-
-        self.change5 = tk.Label(self.root, text="Change", font=change_font, bg="#C4DAD2", fg="#0000EE")
-        self.change5.place(x=830, y=275)
-        self.change5.bind("<Button-1>", lambda event: self.change(5))
 
         self.email = tk.Label(self.root, text="Email", font=normal_text, bg="#C4DAD2")
         self.email.place(x=521, y=322)
@@ -284,7 +280,12 @@ class UserSetting():
                 names = new_name.split(maxsplit=1)
                 fName = names[0]
                 lName = names[1] if len(names) > 1 else ""
+
+                if len(fName)>50 or len(lName)>50: 
+                    messagebox.showinfo("Error", "Length of first name or last name cannot exceed 50")
+                    return
                 self.username_label.configure(text=new_name)
+
                 cursor = self.connection.cursor()
                 cursor.execute(f"UPDATE user SET fName='{fName}', lName='{lName}' WHERE userID={self.userID}")
                 self.connection.commit()
@@ -292,6 +293,14 @@ class UserSetting():
         if num == 1:
             new_email = simpledialog.askstring("Input", "Enter the new email:")
             if new_email:
+                if len(new_email)>255:
+                    messagebox.showinfo('Error', "Length of address cannot exceed 255")
+                    return
+                valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', new_email)
+                if not valid:
+                    messagebox.showinfo("Error", "Please use a valid email address")
+                    return
+
                 self.email_label.configure(text=new_email)
                 cursor =self.connection.cursor()
                 cursor.execute(f"UPDATE user SET email='{new_email}' WHERE userID={self.userID}")
@@ -310,6 +319,9 @@ class UserSetting():
                     break
 
             if correct_form:
+                if len(new_phone_number)>15: 
+                    messagebox.showinfo('Error', "Length of phone number cannot exceed 15")
+                    return
                 self.phone_label.configure(text=new_phone_number)
                 cursor =self.connection.cursor()
                 cursor.execute(f"UPDATE user SET phoneNumber='{new_phone_number}' WHERE userID={self.userID}")
@@ -324,6 +336,14 @@ class UserSetting():
                     messagebox.showerror("Error", "New password must be different from previous password")
                     new_password = simpledialog.askstring("Input", "Enter your new password:")  # Refocus here
                 if new_password:
+                    if len(new_password)>45:
+                        messagebox.showinfo('Error', "Length of password cannot exceed 45")
+                        return
+                    validpassword = re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$', new_password)
+                    if not validpassword:
+                        messagebox.showinfo("Error", "Password must have at least has 8 characters with at least one letter and one number")
+                        return
+
                     current_password = new_password
                     self.password_label.configure(text=("*" * len(current_password)))
                     self.hidden_password.configure(text=new_password)
@@ -337,18 +357,15 @@ class UserSetting():
         elif num == 4:
             new_address = simpledialog.askstring("Input", "Enter the new address:")
             if new_address:
+                if len(new_address)>500:
+                    messagebox.showinfo('Error', "Length of address cannot exceed 500")
+                    return
+        
                 self.address_label.configure(text=new_address)
                 cursor =self.connection.cursor()
                 cursor.execute(f"UPDATE user SET address='{new_address}' WHERE userID={self.userID}")
                 self.connection.commit()
 
-        elif num==5:
-            dialog = RoleDialog(self.root, title="Choose Role")
-            role = dialog.result
-            self.usertype_label.configure(text=role.capitalize())
-            cursor =self.connection.cursor()
-            cursor.execute(f"UPDATE user SET userType='{role}' WHERE userID={self.userID}")
-            self.connection.commit()
     
 
     def link(self,num):
@@ -362,6 +379,9 @@ class UserSetting():
                 correct_form = False
                 messagebox.showinfo("Error", "Please use numeric characters only")
                 break
+        if len(new_acc)>45:
+            messagebox.showerror("Error", f"Payment number cannot exceed 45 characters")
+            return
 
         if new_acc and correct_form:
             current = self.labelpaymentlist[num].cget('text')
@@ -397,4 +417,4 @@ class UserSetting():
 
 
 
-UserSetting()
+# UserSetting()

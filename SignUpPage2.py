@@ -46,6 +46,14 @@ class SignupPage2():
         self.okButton.place(x=890, y=549, width=120, height=50)
 
         self.root.mainloop()
+    
+
+    def checkPaymentDetails(self, p):
+        for char in p:
+            if not char.isdigit():
+                messagebox.showinfo("Error", "Please use numeric characters only for payment details")
+                return False
+        return True
 
     def okClicked(self):
         try:
@@ -57,7 +65,12 @@ class SignupPage2():
                 paymentDetails = entry.get()
                 if not paymentDetails.strip():
                     continue
-                    
+                
+                if len(paymentDetails)>45:
+                    messagebox.showerror("Error", f"Payment number cannot exceed 45 characters")
+                    return
+                if not self.checkPaymentDetails(paymentDetails):
+                    return
                 paymentDict[paymentType]= paymentDetails
             
             if not paymentDict:

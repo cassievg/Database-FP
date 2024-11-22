@@ -73,7 +73,10 @@ class EditProductPage():
             else:
                 entry = tk.Entry(scrollableFrame, background='white', foreground='black', font=('Lato', 16), width=50)
                 entry.pack(pady=(0, 20), anchor='w')
-                entry.insert(0, self.product_dict[d])
+                if d=='product_price':
+                    price = "Rp {:,.0f}".format(self.product_dict[d]).replace(",", ".")
+                    entry.insert(0, price)
+                else: entry.insert(0, self.product_dict[d])
                 entry.config(state='readonly')
                 self.entries.append(entry)
 
@@ -130,12 +133,14 @@ class EditProductPage():
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
     
     def change(self, num):
+        self.entries[num].config(state='normal')
         # self.entry_title = ['Product Name', 'Price', 'Product Description', 'Remaining Stock', 'Category']
         if num==1:
             newnum = simpledialog.askfloat('Input', 'Enter the new price:')
             if newnum:
                 self.entries[num].delete(0, tk.END)
-                self.entries[num].insert(0, str(newnum))
+                price = "Rp {:,.0f}".format(newnum).replace(",", ".")
+                self.entries[num].insert(0, price)
             cursor = self.connection.cursor()
             cursor.execute(f"UPDATE product SET productPrice={newnum} WHERE productID={self.product_dict['product_id']};")
             self.connection.commit()
@@ -153,7 +158,6 @@ class EditProductPage():
         
         else:
             titlequery = self.query_title[num] 
-            print(titlequery)
             s = 'Enter the new '+ self.entry_title[num].lower()
             newinput = simpledialog.askstring('Input', s)
             if newinput:
@@ -164,6 +168,7 @@ class EditProductPage():
                     cursor.execute(f"UPDATE product SET {titlequery}='{newinput}' WHERE productID={self.product_dict['product_id']};")
                     self.connection.commit()
                     cursor.close()
+                    self.entries[num].config(state='disabled')
                 else:
                     self.entries[num].delete(0, tk.END)
                     self.entries[num].insert(0, str(newinput))
@@ -178,6 +183,8 @@ class EditProductPage():
                         cursor.execute(f"UPDATE product SET {titlequery}='{newinput}' WHERE productID={self.product_dict['product_id']};")
                         self.connection.commit()
                     cursor.close()
+
+        self.entries[num].config(state='readonly')
 
 
     def get_categoryName(self,categoryID):

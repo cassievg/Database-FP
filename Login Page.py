@@ -67,6 +67,10 @@ class LoginPage():
         password = self.pwVar.get()
         role = self.roleVar.get()
 
+        if not role:
+            messagebox.showerror("Error", "Please select a role")
+            return
+
         if role == 1:
             role_str = "customer"
         else:
@@ -93,10 +97,6 @@ class LoginPage():
         
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
-
-
-        self.emailVar.set("")
-        self.pwVar.set("")
 
 
 LoginPage()

@@ -1,3 +1,4 @@
+import re
 import tkinter as tk
 from tkinter import messagebox
 from sql_connection import getsqlconnection
@@ -117,6 +118,42 @@ class SignUpPage():
         if not all([fName, lName, address, phoneNo, email, password, role]):
             messagebox.showerror("Input Error", "Missing fields.")
             return
+        
+        if len(fName)>50 or len(lName)>50: 
+            messagebox.showinfo("Error", "Length of first name or last name cannot exceed 50")
+            return
+        
+        if len(address)>500:
+            messagebox.showinfo('Error', "Length of address cannot exceed 500")
+            return
+        
+        if len(phoneNo)>15: 
+            messagebox.showinfo('Error', "Length of phone number cannot exceed 15")
+            return
+        
+        if len(email)>255:
+            messagebox.showinfo('Error', "Length of address cannot exceed 255")
+            return
+        
+        if len(password)>45:
+            messagebox.showinfo('Error', "Length of password cannot exceed 45")
+            return
+
+        for char in phoneNo:
+            if not char.isdigit():
+                messagebox.showinfo("Error", "Please use numeric characters only for phone number")
+                return
+        
+        valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email)
+        if not valid:
+            messagebox.showinfo("Error", "Please use a valid email address")
+            return
+        
+        validpassword = re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$', password)
+        if not validpassword:
+            messagebox.showinfo("Error", "Password must have at least has 8 characters with at least one letter and one number")
+            return
+            
 
         try:
             connection = getsqlconnection()

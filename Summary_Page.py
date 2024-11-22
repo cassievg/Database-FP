@@ -89,7 +89,7 @@ class SummaryPage():
 
     def goToCart(self):
         self.root.destroy()
-        self.cartpage_root.__class__(self.user_id)
+        self.cartpage_root.__class__(self.user_id, self.home_root)
 
 
 
