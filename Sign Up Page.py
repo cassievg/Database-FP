@@ -125,6 +125,10 @@ def submit():
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
 # Add form labels and entries to the scrollable frame
 form_elements = [
     ("First Name", fNameVar), ("Last Name", lNameVar),
