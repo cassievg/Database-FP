@@ -227,6 +227,28 @@ class UserSetting():
         self.link4.place(x=830, y=478)
         self.link4.bind("<Button-1>", lambda event: self.link(4))
 
+
+        self.delete0 = tk.Label(self.root2, text="Delete", font=link_font, bg="#C4DAD2", fg="firebrick")
+        self.delete0.place(x=890, y=275)
+        self.delete0.bind("<Button-1>", lambda event: self.deletepayment(0))
+
+        self.delete1 = tk.Label(self.root2, text="Delete", font=link_font, bg="#C4DAD2", fg="firebrick")
+        self.delete1.place(x=890, y=325)
+        self.delete1.bind("<Button-1>", lambda event: self.deletepayment(1))
+
+        self.delete2 = tk.Label(self.root2, text="Delete", font=link_font, bg="#C4DAD2", fg="firebrick")
+        self.delete2.place(x=890, y=377)
+        self.delete2.bind("<Button-1>", lambda event: self.deletepayment(2))
+
+        self.delete3 = tk.Label(self.root2, text="Delete", font=link_font, bg="#C4DAD2", fg="firebrick")
+        self.delete3.place(x=890, y=428)
+        self.delete3.bind("<Button-1>", lambda event: self.deletepayment(3))
+
+        self.delete4 = tk.Label(self.root2, text="Delete", font=link_font, bg="#C4DAD2", fg="firebrick")
+        self.delete4.place(x=890, y=478)
+        self.delete4.bind("<Button-1>", lambda event: self.deletepayment(4))
+
+
         self.backButton = tk.Button(self.root2, command=self.goBack, width=15, height=3, text="Back", fg="#FFFFFF", bg="#5B8676")
         self.backButton.place(x=110, y=500)
 
@@ -333,7 +355,7 @@ class UserSetting():
         plist = ['BCA', 'OVO', 'GOPAY', 'BNI', 'BRI']
         new_acc = simpledialog.askstring("Input", f"Enter the new {plist[num]}:")
         if not new_acc: return
-        
+
         correct_form = True
         for char in new_acc:
             if not char.isdigit():
@@ -344,15 +366,34 @@ class UserSetting():
         if new_acc and correct_form:
             current = self.labelpaymentlist[num].cget('text')
             self.labelpaymentlist[num].configure(text=new_acc)
-            print('current ='+current)
             if current =='':
                 cursor=self.connection.cursor()
                 cursor.execute(f"INSERT INTO payment(paymentType, paymentDetails, userID) VALUES('{plist[num]}', '{new_acc}', {self.userID})")
                 self.connection.commit()
+                payment_id = cursor.lastrowid
+                self.paymentDict[plist[num]] = (payment_id, new_acc)
+
             else:
                 cursor =self.connection.cursor()
-                cursor.execute(f"UPDATE payment SET paymentDetails='{new_acc}' WHERE userID={self.userID} AND paymentType='{plist[num]}'")
+                paymentid = self.paymentDict[plist[num]][0]
+                cursor.execute(f"UPDATE payment SET paymentDetails='{new_acc}' WHERE paymentID={paymentid}")
+                self.paymentDict[plist[num]] = (paymentid, new_acc)
                 self.connection.commit()
+    
+
+    def deletepayment(self, num):
+        plist = ['BCA', 'OVO', 'GOPAY', 'BNI', 'BRI']
+        answer = messagebox.askyesno(title='confirmation', message=f'Are you sure that you want to delete account for {plist[num]}?')
+        
+        if answer:
+            current = self.labelpaymentlist[num].cget('text')
+            if current =='':
+                messagebox.showerror(title='Error', message=f"Sorry, we couldn't find an account registered under your name for {plist[num]}")
+            else:
+                cursor =self.connection.cursor()
+                cursor.execute(f"DELETE FROM payment where paymentID={self.paymentDict[plist[num]][0]}")
+                self.connection.commit()
+                self.labelpaymentlist[num].configure(text='')
 
 
 
