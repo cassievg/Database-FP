@@ -165,7 +165,7 @@ class SummaryPage():
             priceAtOrder = d['product_price']
             values.append(f"({order_id}, {product_id}, {quantity}, {priceAtOrder})")
 
-        query = "INSERT INTO order_items (orderID, productID, quantity, priceAtOrder) VALUES " + ", ".join(values)
+        query = "INSERT INTO order_items (orderID, productID, quantity, priceAtAddition) VALUES " + ", ".join(values)
         cursor.execute(query)
         self.connection.commit()
 

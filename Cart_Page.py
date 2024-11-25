@@ -179,6 +179,11 @@ class CartPage():
             query = f"UPDATE cart_items SET quantity = {new_quantity} WHERE productID = {product_id} AND cartID = {cart_id[0]};"
             cursor.execute(query)
             self.connection.commit()
+        
+        for product in self.products:
+            if product['product_id'] == product_id:
+                product['quantity'] = new_quantity
+                break
         cursor.close()
 
 
@@ -189,6 +194,8 @@ class CartPage():
             cursor = self.connection.cursor()
             cursor.execute(f"DELETE FROM cart_items WHERE productID = {product_id};")
             self.connection.commit()
+        self.products = [product for product in self.products if product['product_id'] != product_id]
+
 
 
     def goToSetting(self):
