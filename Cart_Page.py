@@ -163,7 +163,7 @@ class CartPage():
         
         if remaining_stock < new_quantity:
             # Display error if stock is insufficient
-            messagebox.showerror("Stock Error", f"Insufficient stock for product ID {product_id}. Available: {remaining_stock}, Required: {new_quantity}")
+            messagebox.showerror("Stock Error", f"Insufficient stock. Available: {remaining_stock}, Required: {new_quantity}")
             return  # Don't update the UI if stock is insufficient
 
         # If sufficient stock, update the quantity

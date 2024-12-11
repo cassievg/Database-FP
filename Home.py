@@ -6,7 +6,7 @@ from Cart_Page import CartPage
 from User_Setting import UserSetting
 
 class Homepage():
-    def __init__(self, user_id=3):
+    def __init__(self, user_id):
         self.root = tk.Tk()
         self.root.title("Home Page")
         self.root.configure(bg="#C4DAD2")
