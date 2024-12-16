@@ -5,7 +5,7 @@
 - Ellis Raputri (2702298116)
 - Rafael Anderson (2702255981)
 
-**Class:** L13AC
+**Class:** L3AC
 
 <br>
 
