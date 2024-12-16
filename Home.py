@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from sql_connection import getsqlconnection
 from PIL import Image, ImageTk
 from Product_Page import ProductPage
@@ -32,7 +33,11 @@ class Homepage():
 
         image4 = tk.PhotoImage(file='icons/settingIcon.png')
         self.settingButton = tk.Button(self.root, image=image4, command=self.goToSetting, bg="#C4DAD2", fg="white")
-        self.settingButton.place(x=1193, y=29, width=48, height=48)
+        self.settingButton.place(x=1182, y=29, width=48, height=48)
+
+        image5 = tk.PhotoImage(file='icons/historyIcon.png')
+        self.historyButton = tk.Button(self.root, image=image5, command=self.openHistory, bg="#C4DAD2", fg="white")
+        self.historyButton.place(x=1042, y=29, width=48, height=48)
 
 
         self.filterframe = tk.Frame(self.root, bg='white')
@@ -254,6 +259,83 @@ class Homepage():
         self.root.destroy()
         ProductPage(product, self.user_id, self)
 
+    def openHistory(self):
+        history_window = tk.Toplevel()
+        history_window.title("User Buying History")
+        history_window.geometry("800x400")
+
+        frame = tk.Frame(history_window)
+        frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        columns = ("Purchase Date", "Product Name", "Price", "Quantity", "Total Price", "Seller Email", "Seller Address","Seller Phone Number")
+        tree = ttk.Treeview(frame, columns=columns, show="headings", height=15)
+
+        lis = self.retrieve_buying_history()
+
+        for col in columns:
+            tree.heading(col, text=col)
+            tree.column(col, anchor="center", width=150)
+
+        for item in lis:
+            pc = "Rp {:,.0f}".format(item['price']).replace(",", ".")
+            total = "Rp {:,.0f}".format(item['price']*item['quantity']).replace(",", ".")
+            tree.insert("", "end", values=(
+                item["purchase_date"],
+                item["product_name"],
+                pc,
+                item["quantity"],
+                total,
+                item['seller_email'],
+                item['seller_address'],
+                item['seller_phonenumber']
+            ))
+
+        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+        tree.configure(xscrollcommand=h_scroll.set)
+
+        tree.pack(side="top", fill="both", expand=True)
+        h_scroll.pack(side="bottom", fill="x")
+
+        close_button = tk.Button(history_window, text="Close", command=history_window.destroy)
+        close_button.pack(pady=10)
+    
+
+    def retrieve_buying_history(self):
+        lis = []
+        query = """
+            SELECT 
+                p.productName, 
+                o.orderDate, 
+                oi.quantity, 
+                oi.priceAtAddition,
+                u.email, 
+                u.address,
+                u.phoneNumber
+            FROM orders o
+            JOIN order_items oi ON o.orderID = oi.orderID
+            JOIN product p ON oi.productID = p.productID
+            JOIN user u ON p.sellerID = u.userID
+            WHERE o.customerID = %s
+            ORDER BY orderDate;
+        """
+        
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, (self.user_id,))
+            for product_name, order_date, qnt, priceA, em, add, pn in cursor:
+                d = {
+                    "product_name": product_name,
+                    "purchase_date": order_date,
+                    "price": priceA,
+                    "quantity": qnt,
+                    "seller_email" : em,
+                    "seller_address":add,
+                    "seller_phonenumber":pn
+                }
+                lis.append(d)
+        
+        return lis
+
+
     
     def on_frame_configure(self,event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -275,4 +357,4 @@ class Homepage():
         self.root.destroy()
         UserSetting(self.user_id, self)
 
-# Homepage()
+# Homepage(3)
