@@ -84,35 +84,40 @@ class SignupPage2():
             phoneNo=self.userDict['phoneNumber']
             password =self.userDict['password']
             email =self.userDict['email']
-            
-            query_insert = """
-            INSERT INTO user (userType, fName, lName, address, phoneNumber, password, email)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(query_insert, (role_str, fName, lName, address, phoneNo, password, email))
-            connection.commit()
+
+            query1 = "SELECT userID FROM user ORDER BY userID DESC LIMIT 1;"
+            cursor.execute(query1)
+            result = cursor.fetchone()  # Fetch the first row
+
+            # Check if a row is returned
+            if result is not None:
+                last_userid = result[0]  # Extract the first element (userID)
+                user_id = last_userid + 1
+            else:
+                user_id = 1  # Default to 1 if no rows are returned
 
             cursor = connection.cursor()
-            query_id = """
-            SELECT * FROM user WHERE userType=%s AND fName=%s AND lName=%s AND address=%s 
-            AND phoneNumber=%s AND password=%s AND email=%s
+            query_insert = """
+            INSERT INTO user (userID, userType, fName, lName, address, phoneNumber, password, email, cartID)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(query_id, (role_str, fName, lName, address, phoneNo, password, email))
-            userid = cursor.fetchone()[0]
+            cursor.execute(query_insert, (user_id, role_str, fName, lName, address, phoneNo, password, email, user_id))
+            connection.commit()
 
-            for key,val in paymentDict.items():
+            for key, val in paymentDict.items():
                 query = """
                 INSERT INTO payment (paymentType, paymentDetails, userID)
                 VALUES (%s, %s, %s)
                 """
-                cursor.execute(query, (key, val, userid))
+                cursor.execute(query, (key, val, user_id))
 
             connection.commit()
             messagebox.showinfo("Success", "Account created successfully!")
 
+
             self.root.destroy()
-            if(role_str.lower()=='customer'): Homepage(userid)
-            else: SellerHomePage(userid)
+            if(role_str.lower()=='customer'): Homepage(user_id)
+            else: SellerHomePage(user_id)
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")

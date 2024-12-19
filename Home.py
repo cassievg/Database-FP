@@ -267,7 +267,7 @@ class Homepage():
         frame = tk.Frame(history_window)
         frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        columns = ("Purchase Date", "Product Name", "Price", "Quantity", "Total Price", "Seller Email", "Seller Address","Seller Phone Number")
+        columns = ("Purchase Date", "Product Name", "Price", "Quantity", "Total Price", "Payment Type", "Seller Email", "Seller Address","Seller Phone Number")
         tree = ttk.Treeview(frame, columns=columns, show="headings", height=15)
 
         lis = self.retrieve_buying_history()
@@ -285,6 +285,7 @@ class Homepage():
                 pc,
                 item["quantity"],
                 total,
+                item['payment_type'],
                 item['seller_email'],
                 item['seller_address'],
                 item['seller_phonenumber']
@@ -310,18 +311,20 @@ class Homepage():
                 oi.priceAtAddition,
                 u.email, 
                 u.address,
-                u.phoneNumber
+                u.phoneNumber,
+                py.paymentType
             FROM orders o
             JOIN order_items oi ON o.orderID = oi.orderID
             JOIN product p ON oi.productID = p.productID
             JOIN user u ON p.sellerID = u.userID
-            WHERE o.customerID = %s
+            JOIN payment py ON o.paymentID = py.paymentID
+            WHERE py.userID = %s
             ORDER BY orderDate;
         """
         
         with self.connection.cursor() as cursor:
             cursor.execute(query, (self.user_id,))
-            for product_name, order_date, qnt, priceA, em, add, pn in cursor:
+            for product_name, order_date, qnt, priceA, em, add, pn, pt in cursor:
                 d = {
                     "product_name": product_name,
                     "purchase_date": order_date,
@@ -329,7 +332,8 @@ class Homepage():
                     "quantity": qnt,
                     "seller_email" : em,
                     "seller_address":add,
-                    "seller_phonenumber":pn
+                    "seller_phonenumber":pn,
+                    "payment_type":pt
                 }
                 lis.append(d)
         

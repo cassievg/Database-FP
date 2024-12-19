@@ -30,6 +30,23 @@ class SummaryPage():
         self.checkoutButton = tk.Button(self.root, command=self.checkout, bg="#5B8676", fg="white", text='Checkout', font='Lato 20 bold')
         self.checkoutButton.place(x=1041, y=621, width=200, height=60)
 
+        txtpayment = tk.Label(self.root, text="Payment:", font='Lato 16 bold', bg='#C4DAD2')
+        txtpayment.place(x=300, y=550)
+
+        cursor = self.connection.cursor()
+        query = "SELECT paymentID, paymentType FROM payment WHERE userID = %s"
+        cursor.execute(query, (self.user_id,)) 
+        results = cursor.fetchall()  
+        self.paymentsID = [x[0] for x in results]
+        self.paymentsType = [x[1] for x in results]
+
+        self.clicked = tk.StringVar()
+        self.clicked.set(self.paymentsType[0])
+        self.dropdown = tk.OptionMenu(self.root, self.clicked, *self.paymentsType)
+        self.dropdown.configure(font="Lato 14", background='white')
+        self.dropdown.place(x=410, y=550)
+        menu = self.root.nametowidget(self.dropdown.menuname)
+        menu.configure(font="Lato 14")
 
         self.productframe = tk.Frame(self.root, bg='#C4DAD2')
         self.productframe.place(x=246, y=110, width=775, height=405)
@@ -94,20 +111,15 @@ class SummaryPage():
 
 
     def checkout(self):
-        cursor = self.connection.cursor()
-        cursor.execute(f"SELECT GROUP_CONCAT(paymentType) FROM payment WHERE userID = {self.user_id};")
-        customer_payment_types = cursor.fetchone()[0]
-
+        customer_payment_types = self.clicked.get()
         if not customer_payment_types:
             messagebox.showerror("Payment Error", "No payment methods found for the customer.")
             cursor.close()
             return
 
-        customer_payment_types = set(customer_payment_types.split(','))
-
-        # Step 2: Retrieve Seller Payment Types
         seller_payment_types = set()
-        non_matching_sellers = []  # List to store sellers with no common payment methods
+        non_matching_sellers = [] 
+        cursor = self.connection.cursor()
         for d in self.products:
             seller_id = d['seller_id']
             cursor.execute(f"SELECT GROUP_CONCAT(paymentType) FROM payment WHERE userID = {seller_id};")
@@ -120,8 +132,8 @@ class SummaryPage():
                 cursor.close()
                 return
 
-            # Check if the seller has no common payment methods with the customer
-            if customer_payment_types.isdisjoint(seller_payment_types_for_product.split(',')):
+            set_seller_payment_type_for_product = set(seller_payment_types_for_product.split(','))
+            if customer_payment_types not in set_seller_payment_type_for_product:
                 non_matching_sellers.append(d['product_name'])  # Add product name to the list
 
         if not seller_payment_types:
@@ -152,10 +164,16 @@ class SummaryPage():
                 cursor.close()
                 return  
 
-        cursor.execute(f"INSERT INTO orders (orderDate, customerID) VALUES ('{datenow}', {self.user_id});")
+        ind = 0
+        for i, name in enumerate(self.paymentsType):
+            if name == customer_payment_types:
+                ind=i
+                break
+
+        cursor.execute(f"INSERT INTO orders (orderDate, paymentID) VALUES ('{datenow}', {self.paymentsID[ind]});")
         self.connection.commit()
 
-        cursor.execute(f"SELECT orderID FROM orders WHERE customerID = {self.user_id} ORDER BY orderID DESC LIMIT 1;")
+        cursor.execute(f"SELECT orderID FROM orders WHERE paymentID = {self.paymentsID[ind]} ORDER BY orderID DESC LIMIT 1;")
         order_id = cursor.fetchone()[0]
 
         values = []
@@ -176,7 +194,7 @@ class SummaryPage():
             cursor.execute(update_stock_query)
         
         cursor = self.connection.cursor()
-        cursor.execute(f"DELETE ci FROM cart_items ci JOIN cart c ON ci.cartID = c.cartID WHERE c.userID = {self.user_id};")
+        cursor.execute(f"DELETE ci FROM cart_items ci JOIN user u ON ci.cartID = u.cartID WHERE u.userID = {self.user_id};")
         self.connection.commit()
         cursor.close()
         messagebox.showinfo("Order Successful", "Your order has been placed successfully!")

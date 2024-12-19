@@ -49,8 +49,8 @@ class CartPage():
         cart_query = f"""
             SELECT cart_items.productID, cart_items.quantity, cart_items.priceAtAddition 
             FROM cart_items 
-            JOIN cart ON cart.cartID = cart_items.cartID 
-            WHERE cart.userID = {self.user_id};
+            JOIN user ON user.cartID = cart_items.cartID 
+            WHERE user.userID = {self.user_id};
         """
         cart_cursor.execute(cart_query)
 
@@ -172,7 +172,7 @@ class CartPage():
 
     def update_quantity(self, product_id, new_quantity):
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT cartID FROM cart WHERE userID = {self.user_id};")
+        cursor.execute(f"SELECT cartID FROM user WHERE userID = {self.user_id};")
         cart_id = cursor.fetchone()
 
         if cart_id:

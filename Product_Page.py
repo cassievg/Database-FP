@@ -128,17 +128,7 @@ class ProductPage():
         self.home_root.__class__() 
     
     def addToCart(self):
-        cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM cart WHERE userID = {self.user_id}")
-        cart = cursor.fetchone()
-        
-        if not cart:
-            cursor.execute(f"INSERT INTO cart (userID) VALUES ({self.user_id})")
-            self.connection.commit()
-            cart_id = cursor.lastrowid
-        else:
-            cart_id = cart[0]
-        cursor.close()
+        cart_id = self.user_id
         
         product_id = self.product_dict['product_id']
         cursor = self.connection.cursor()

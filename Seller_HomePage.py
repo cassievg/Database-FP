@@ -160,12 +160,12 @@ class SellerHomePage():
         for widget in self.scrollableFrame.winfo_children():
             widget.destroy()
 
-        available_products = [product for product in self.displayProducts if product['remaining_stock'] > 0]
-        for d in available_products:
+        for d in self.displayProducts:
             name = d['product_name']
             price = d['product_price']
             price = "Rp {:,.0f}".format(price).replace(",", ".")
             image_path = 'images/' + d['product_image']
+            stock = 'Remaining stock: ' + str(d['remaining_stock'])
 
             product_canvas = tk.Canvas(self.scrollableFrame, width=1130, height=150, bg="white", highlightthickness=0)
             product_canvas.grid(padx=25, pady=20)
@@ -178,6 +178,7 @@ class SellerHomePage():
 
             product_canvas.create_text(230, 35, text=name, font='Lato 16 bold', fill='black', anchor='w')
             product_canvas.create_text(230, 70, text=price, font='Lato 14', fill='grey', anchor='w')
+            product_canvas.create_text(230, 105, text=stock, font='Lato 14', fill='grey', anchor='w')
 
             delete_button = tk.Button(self.scrollableFrame, text="X", command=lambda pc=product_canvas, pid=d['product_id']: self.delete_product(pc,pid), width=3, bg='lightcoral', font='Lato 14 bold')
             product_canvas.create_window(1100, 25, window=delete_button)
@@ -201,7 +202,7 @@ class SellerHomePage():
         frame = tk.Frame(history_window)
         frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        columns = ("Purchase Date", "Product Name", "Price", "Quantity", "Total Price", "Customer Email", "Customer Address","Customer Phone Number")
+        columns = ("Purchase Date", "Product Name", "Price", "Quantity", "Total Price", "Payment Type", "Customer Email", "Customer Address","Customer Phone Number")
         tree = ttk.Treeview(frame, columns=columns, show="headings", height=15)
 
         lis = self.retrieve_buying_history()
@@ -219,6 +220,7 @@ class SellerHomePage():
                 pc,
                 item["quantity"],
                 total,
+                item['payment_type'],
                 item['customer_email'],
                 item['customer_address'],
                 item['customer_phonenumber']
@@ -244,18 +246,20 @@ class SellerHomePage():
                 oi.priceAtAddition,
                 u.email,
                 u.address,
-                u.phoneNumber
+                u.phoneNumber,
+                py.paymentType
             FROM orders o
             JOIN order_items oi ON o.orderID = oi.orderID
             JOIN product p ON oi.productID = p.productID
-            JOIN user u ON o.customerID = u.userID
+            JOIN payment py ON o.paymentID = py.paymentID
+            JOIN user u ON py.userID = u.userID
             WHERE p.sellerID = %s
             ORDER BY orderDate;
         """
         
         with self.connection.cursor() as cursor:
             cursor.execute(query, (self.sellerID,))
-            for product_name, order_date, qnt, priceA, em, add,pn in cursor:
+            for product_name, order_date, qnt, priceA, em, add,pn, pt in cursor:
                 d = {
                     "product_name": product_name,
                     "purchase_date": order_date,
@@ -263,10 +267,11 @@ class SellerHomePage():
                     "quantity": qnt,
                     "customer_email" : em,
                     "customer_address":add,
-                    "customer_phonenumber":pn
+                    "customer_phonenumber":pn,
+                    "payment_type":pt
                 }
                 lis.append(d)
         
         return lis
 
-# SellerHomePage(2)
+SellerHomePage(2)
